@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: victim-advocate
+    runtime: python
+    buildCommand: pip install flask anthropic
+    startCommand: python app.py
+    envVars:
+      - key: PORT
+        value: 5100
+      - key: PYTHON_VERSION
+        value: 3.12.0
