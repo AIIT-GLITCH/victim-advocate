@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite
+.env
+add_evidence*.py
+data/add_evidence*.py

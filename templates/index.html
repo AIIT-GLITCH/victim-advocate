@@ -1,0 +1,2325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victim Advocate — Free Evidence Engine</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a28;
+            --border: #2a2a3a;
+            --text: #e0e0e8;
+            --text-dim: #8888a0;
+            --accent: #4a9eff;
+            --accent2: #7c5cff;
+            --success: #44cc88;
+            --warning: #ffaa33;
+            --danger: #ff4466;
+            --gold: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header .free-badge {
+            display: inline-block;
+            background: var(--success);
+            color: #000;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Search */
+        .search-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+        }
+
+        .search-box::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* Main content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+
+        /* Category cards */
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(74, 158, 255, 0.1);
+        }
+
+        .category-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .category-card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .category-card .count {
+            display: inline-block;
+            background: var(--surface2);
+            padding: 0.2rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-top: 0.75rem;
+        }
+
+        /* Denial list */
+        .denial-list {
+            display: none;
+        }
+
+        .denial-list.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .denial-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .denial-card:hover {
+            border-color: var(--accent);
+        }
+
+        .denial-card h3 {
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+
+        .denial-card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* Evidence packet view */
+        .packet-view {
+            display: none;
+        }
+
+        .packet-view.active {
+            display: block;
+        }
+
+        .packet-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .packet-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .packet-section.what-they-say h3 {
+            color: var(--danger);
+        }
+
+        .packet-section.what-data-says h3 {
+            color: var(--success);
+        }
+
+        .packet-section.studies h3 {
+            color: var(--accent);
+        }
+
+        .packet-section.case-law h3 {
+            color: var(--accent2);
+        }
+
+        .packet-section.template h3 {
+            color: var(--gold);
+        }
+
+        /* Quote blocks */
+        .they-say-quote {
+            background: rgba(255, 68, 102, 0.1);
+            border-left: 3px solid var(--danger);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--text-dim);
+        }
+
+        .data-says-text {
+            background: rgba(68, 204, 136, 0.1);
+            border-left: 3px solid var(--success);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            line-height: 1.8;
+        }
+
+        /* Studies */
+        .study-item {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .study-item .study-title {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .study-item .study-meta {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin: 0.25rem 0;
+        }
+
+        .study-item .study-finding {
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .study-item .study-doi {
+            color: var(--accent2);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Case law */
+        .case-item {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--accent2);
+        }
+
+        .case-item .case-name {
+            color: var(--accent2);
+            font-weight: 600;
+        }
+
+        .case-item .case-year {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .case-item .case-ruling {
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Federal law */
+        .law-list {
+            list-style: none;
+        }
+
+        .law-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .law-list li::before {
+            content: '\00A7';
+            position: absolute;
+            left: 0;
+            color: var(--accent2);
+            font-weight: 700;
+        }
+
+        /* Appeal template */
+        .appeal-text {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: var(--text);
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent2);
+            color: #fff;
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        /* Tips */
+        .tip-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            align-items: flex-start;
+        }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+        .tip-bullet {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+
+        .tip-text {
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        /* Damages box */
+        .damages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .damage-stat {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .damage-stat .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .damage-stat .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        /* Success rate */
+        .success-box {
+            background: rgba(68, 204, 136, 0.1);
+            border: 1px solid rgba(68, 204, 136, 0.3);
+            border-radius: 8px;
+            padding: 1.25rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        /* Search results */
+        .search-results {
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            border-color: var(--accent);
+        }
+
+        .search-result-item .result-category {
+            font-size: 0.8rem;
+            color: var(--accent2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .search-result-item h4 {
+            color: var(--warning);
+            margin: 0.25rem 0;
+        }
+
+        .search-result-item p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Print styles */
+        .print-btn {
+            background: var(--accent2);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .print-btn:hover {
+            opacity: 0.8;
+        }
+
+        .packet-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer .hotlines {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem auto;
+            max-width: 600px;
+            text-align: left;
+        }
+
+        .footer .hotlines h4 {
+            color: var(--danger);
+            margin-bottom: 0.75rem;
+        }
+
+        .footer .hotlines p {
+            margin: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        .footer .hotlines strong {
+            color: var(--text);
+        }
+
+        /* ── Advocate Chat Widget ── */
+        .chat-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(74,158,255,0.4);
+            z-index: 1000;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .chat-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(74,158,255,0.6);
+        }
+        .chat-fab .chat-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--success);
+            color: #000;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 8px;
+            letter-spacing: 0.03em;
+        }
+        .chat-panel {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            width: 380px;
+            max-height: 560px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.25s, opacity 0.25s;
+        }
+        .chat-panel.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .chat-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 16px 16px 0 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+        .chat-header-title {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        .chat-header-sub {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .chat-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 0.25rem;
+            transition: color 0.2s;
+        }
+        .chat-close:hover { color: var(--text); }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-height: 200px;
+        }
+        .chat-msg {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            background: var(--accent2);
+            color: #fff;
+            border-radius: 12px 12px 2px 12px;
+        }
+        .chat-msg.agent {
+            align-self: flex-start;
+            background: var(--surface2);
+            color: var(--text);
+            border-radius: 12px 12px 12px 2px;
+            border-left: 3px solid var(--accent);
+        }
+        .chat-msg.agent.streaming::after {
+            content: '▋';
+            animation: blink 0.7s infinite;
+            color: var(--accent);
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        .chat-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 0.6rem 0.9rem;
+            font-size: 0.9rem;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            font-family: inherit;
+        }
+        .chat-input:focus { border-color: var(--accent); }
+        .chat-send {
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 700;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            align-self: flex-end;
+        }
+        .chat-send:hover { background: var(--accent2); color: #fff; }
+        .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-starter {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            padding: 0.75rem 1rem 0;
+            text-align: center;
+        }
+        .chat-starter-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem 0;
+            justify-content: center;
+        }
+        .starter-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text-dim);
+            padding: 0.3rem 0.75rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .starter-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        @media (max-width: 480px) {
+            .chat-panel { width: calc(100vw - 2rem); right: 1rem; }
+            .chat-fab { bottom: 1rem; right: 1rem; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.6rem; }
+            .categories { grid-template-columns: 1fr; }
+            .damages-grid { grid-template-columns: 1fr 1fr; }
+            .packet-actions { flex-direction: column; }
+        }
+
+        @media print {
+            body { background: #fff; color: #000; }
+            .header, .search-container, .back-btn, .copy-btn,
+            .print-btn, .packet-actions, .footer { display: none; }
+            .packet-section { border: 1px solid #ccc; break-inside: avoid; }
+            .study-item, .case-item { border: 1px solid #ddd; }
+            .they-say-quote { background: #fff5f5; border-color: #c00; }
+            .data-says-text { background: #f5fff5; border-color: #080; }
+            .appeal-text { background: #fffff5; border-color: #aa0; }
+            * { color: #000 !important; }
+        }
+
+        /* ── Deadline Calculator ── */
+        .deadline-widget {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 0 1.5rem;
+        }
+        .deadline-toggle-btn {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            padding: 0.85rem 1.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+        }
+        .deadline-toggle-btn:hover { border-color: var(--warning); }
+        .deadline-toggle-btn .dtb-left { display: flex; align-items: center; gap: 0.6rem; }
+        .deadline-toggle-btn .dtb-label { color: var(--warning); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; }
+        .deadline-calc-panel {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 1.25rem 1.5rem;
+        }
+        .deadline-calc-panel.open { display: block; }
+        .deadline-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .deadline-row select, .deadline-row input[type="date"] {
+            flex: 1;
+            min-width: 180px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 0.6rem 0.9rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .deadline-row select:focus, .deadline-row input[type="date"]:focus { border-color: var(--warning); }
+        .deadline-calc-btn {
+            background: var(--warning);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .deadline-calc-btn:hover { opacity: 0.85; }
+        .deadline-result {
+            display: none;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-top: 0.5rem;
+        }
+        .deadline-result.ok { background: rgba(68,204,136,0.1); border: 1px solid rgba(68,204,136,0.3); }
+        .deadline-result.watch { background: rgba(255,170,51,0.1); border: 1px solid rgba(255,170,51,0.3); }
+        .deadline-result.urgent { background: rgba(255,100,50,0.15); border: 1px solid rgba(255,100,50,0.4); }
+        .deadline-result.critical { background: rgba(255,44,66,0.15); border: 1px solid rgba(255,44,66,0.5); }
+        .deadline-result.today { background: rgba(255,44,66,0.25); border: 2px solid var(--danger); }
+        .deadline-result.expired { background: rgba(120,50,80,0.2); border: 1px solid rgba(200,50,80,0.5); }
+        .deadline-big-date { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .deadline-days-remaining { font-size: 1rem; margin-bottom: 0.75rem; }
+        .deadline-urgency-msg { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; }
+        .deadline-levels { margin-top: 1rem; }
+        .deadline-level-item { padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        .deadline-level-item:last-child { border-bottom: none; }
+        .deadline-level-name { color: var(--accent); font-weight: 600; }
+        .deadline-level-how { color: var(--text-dim); margin-top: 0.2rem; }
+        .deadline-result .crit-note {
+            background: rgba(255,255,255,0.04);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.75rem 0;
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* ── ACE Score Widget ── */
+        .ace-widget {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .ace-widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .ace-widget-header h3 { font-size: 1rem; color: var(--accent2); }
+        .ace-widget-body { display: none; margin-top: 1rem; }
+        .ace-widget-body.open { display: block; }
+        .ace-slider-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .ace-slider { flex: 1; accent-color: var(--accent2); cursor: pointer; }
+        .ace-score-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent2);
+            min-width: 2.5rem;
+            text-align: center;
+        }
+        .ace-result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .ace-stat {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 0.9rem;
+            text-align: center;
+        }
+        .ace-stat-val { font-size: 1.4rem; font-weight: 700; }
+        .ace-stat-label { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.2rem; }
+        .ace-phase { font-size: 0.85rem; color: var(--text-dim); padding: 0.75rem; background: var(--surface2); border-radius: 8px; margin-bottom: 0.75rem; }
+        .ace-outcomes { font-size: 0.88rem; }
+        .ace-outcome-item { padding: 0.4rem 0; border-bottom: 1px solid var(--border); color: var(--text); }
+        .ace-outcome-item:last-child { border-bottom: none; }
+
+        /* ── Generate Appeal Letter ── */
+        .appeal-gen-section {
+            background: rgba(74,158,255,0.05);
+            border: 1px solid rgba(74,158,255,0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .appeal-gen-section h3 { color: var(--accent); font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .appeal-gen-desc { color: var(--text-dim); font-size: 0.88rem; margin-bottom: 1rem; line-height: 1.6; }
+        .appeal-gen-form { display: flex; flex-direction: column; gap: 0.75rem; }
+        .appeal-gen-form textarea {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            min-height: 80px;
+        }
+        .appeal-gen-form textarea:focus { border-color: var(--accent); }
+        .appeal-gen-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .appeal-gen-row input {
+            flex: 1;
+            min-width: 140px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 0.6rem 0.9rem;
+            font-size: 0.88rem;
+            outline: none;
+        }
+        .appeal-gen-row input:focus { border-color: var(--accent); }
+        .appeal-gen-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            align-self: flex-start;
+            transition: background 0.2s;
+        }
+        .appeal-gen-btn:hover { background: var(--accent2); color: #fff; }
+        .appeal-gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .appeal-letter-output {
+            display: none;
+            margin-top: 1.25rem;
+            background: rgba(255,215,0,0.04);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        .appeal-letter-output.active { display: block; }
+        .appeal-letter-text {
+            font-family: 'Georgia', serif;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text);
+            white-space: pre-wrap;
+            min-height: 100px;
+        }
+        .appeal-letter-text.streaming::after {
+            content: '▋';
+            animation: blink 0.7s infinite;
+            color: var(--gold);
+        }
+        .appeal-letter-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Disclaimer banner */
+        .disclaimer {
+            background: rgba(255, 170, 51, 0.1);
+            border: 1px solid rgba(255, 170, 51, 0.3);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .disclaimer strong {
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>VICTIM ADVOCATE</h1>
+    <p class="subtitle">Free evidence packets with peer-reviewed studies, case law, and appeal templates for people denied by the systems that should protect them.</p>
+    <span class="free-badge">100% FREE — NO ACCOUNT REQUIRED</span>
+</div>
+
+<div class="search-container">
+    <input type="text" class="search-box" id="searchBox"
+        placeholder="Search: PTSD, disability, eviction, trafficking, insurance denial, burn pit...">
+</div>
+
+<!-- ── Deadline Calculator ── -->
+<div class="deadline-widget">
+    <button class="deadline-toggle-btn" onclick="toggleDeadlineCalc()">
+        <span class="dtb-left">
+            <span>⏰</span>
+            <span>Deadline Calculator — Know your clock before it runs out</span>
+        </span>
+        <span class="dtb-label" id="deadlineToggleLabel">OPEN ▾</span>
+    </button>
+    <div class="deadline-calc-panel" id="deadlineCalcPanel">
+        <div class="deadline-row">
+            <select id="deadlineSystemSelect">
+                <option value="">— Select your system type —</option>
+                <option value="disability">SSA Disability (SSI/SSDI)</option>
+                <option value="veterans">VA Benefits</option>
+                <option value="insurance">Health Insurance</option>
+                <option value="foster_care">Foster Care &amp; Child Welfare</option>
+                <option value="housing">Housing &amp; Eviction</option>
+                <option value="workers_comp">Workers' Compensation</option>
+                <option value="chronic_pain">Chronic Pain Treatment Denied</option>
+                <option value="trafficking">Trafficking Survivors</option>
+                <option value="domestic_violence">Domestic Violence Survivors</option>
+            </select>
+            <input type="date" id="deadlineDenialDate" title="Date on your denial letter">
+            <button class="deadline-calc-btn" onclick="calcDeadline()">Calculate</button>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:0.5rem;">
+            Enter the <strong style="color:var(--text)">date on your denial letter</strong> (not when you received it — the date printed on the letter).
+        </p>
+        <div id="deadlineResult" class="deadline-result"></div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="disclaimer">
+        <strong>Legal Disclaimer:</strong> This tool provides publicly available research, case law, and template language for educational purposes. It is not legal advice. For your specific situation, consult with an attorney. Many legal aid organizations provide free representation — contact information is included in each evidence packet.
+    </div>
+
+    <!-- ACE Score Widget -->
+    <div class="ace-widget" id="aceWidget">
+        <div class="ace-widget-header" onclick="toggleAceWidget()">
+            <h3>ACE Score Impact Calculator — What Adversity Does to the Body</h3>
+            <span id="aceToggleChevron" style="color:var(--text-dim);font-size:0.85rem;">▾ Show</span>
+        </div>
+        <div class="ace-widget-body" id="aceWidgetBody">
+            <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:1rem;line-height:1.6;">
+                Adverse Childhood Experiences (ACEs) follow a stretched exponential decoherence curve across N=17,337 subjects (Felitti et al. 1998). This is peer-reviewed biological data — not a risk score. Use it in appeals to document the medical basis of your situation.
+            </p>
+            <div class="ace-slider-row">
+                <input type="range" class="ace-slider" id="aceSlider" min="0" max="10" value="0" oninput="updateAce(this.value)">
+                <div class="ace-score-display" id="aceScoreDisplay">0</div>
+            </div>
+            <div id="aceResultArea"></div>
+        </div>
+    </div>
+
+    <!-- Categories view -->
+    <div id="categoriesView" class="categories"></div>
+
+    <!-- Search results -->
+    <div id="searchResults" class="search-results"></div>
+
+    <!-- Denial list for a category -->
+    <div id="denialList" class="denial-list"></div>
+
+    <!-- Evidence packet view -->
+    <div id="packetView" class="packet-view"></div>
+</div>
+
+<div class="footer">
+    <div class="hotlines">
+        <h4>Crisis Resources — Available 24/7</h4>
+        <p><strong>National Human Trafficking Hotline:</strong> 1-888-373-7888 (call or text)</p>
+        <p><strong>National Domestic Violence Hotline:</strong> 1-800-799-7233</p>
+        <p><strong>Crisis Text Line:</strong> Text HOME to 741741</p>
+        <p><strong>988 Suicide & Crisis Lifeline:</strong> Call or text 988</p>
+        <p><strong>National Child Abuse Hotline:</strong> 1-800-422-4453</p>
+        <p><strong>SAMHSA Helpline:</strong> 1-800-662-4357</p>
+    </div>
+    <p style="margin-top:1.5rem">AIIT-THRESI Research Initiative | 2026</p>
+    <p>Every citation is real. Every study is published. Every case is on the record.</p>
+    <p style="margin-top:0.5rem; font-size:0.8rem;">Built with the Wike Coherence Framework — because data saves lives.</p>
+</div>
+
+<!-- ── Advocate Chat Widget ── -->
+<button class="chat-fab" onclick="toggleChat()" title="Talk to the Advocate">
+    💬
+    <span class="chat-badge">FREE</span>
+</button>
+
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+        <div>
+            <div class="chat-header-title">Victim Advocate</div>
+            <div class="chat-header-sub">Tell me what happened. I'll find your evidence.</div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">✕</button>
+    </div>
+    <!-- API key setup screen -->
+    <div id="keySetup" style="padding:1.25rem;display:none;overflow-y:auto;max-height:480px;">
+        <p style="color:var(--accent);font-weight:700;font-size:1rem;margin-bottom:0.5rem;">Activate Your Advocate</p>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin-bottom:1rem;line-height:1.5;">
+            The advocate uses AI to talk you through your situation and find your evidence. It runs on your own free Anthropic account — no upcharge, no middleman. Takes about 2 minutes to set up.
+        </p>
+
+        <div style="background:var(--surface2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+            <p style="color:var(--success);font-weight:700;font-size:0.85rem;margin-bottom:0.75rem;">How to get your free key:</p>
+            <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                    <span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+                    <span style="color:var(--text);font-size:0.82rem;">Go to <strong style="color:var(--accent)">console.anthropic.com</strong> and click <strong>Sign Up</strong> (free account)</span>
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                    <span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+                    <span style="color:var(--text);font-size:0.82rem;">Verify your email, then go to <strong>Settings → API Keys</strong></span>
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                    <span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+                    <span style="color:var(--text);font-size:0.82rem;">Click <strong>Create Key</strong>, give it any name, copy it</span>
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                    <span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+                    <span style="color:var(--text);font-size:0.82rem;">Paste it below. You're in.</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:rgba(255,170,51,0.08);border:1px solid rgba(255,170,51,0.25);border-radius:8px;padding:0.75rem;margin-bottom:1rem;font-size:0.78rem;color:var(--text-dim);line-height:1.5;">
+            <strong style="color:var(--warning);">Cost:</strong> New accounts get free credits. After that, conversations cost fractions of a cent. You control your own usage at console.anthropic.com. We never see your key or your bill.
+        </div>
+
+        <input type="password" id="keyInput" placeholder="Paste your key here (sk-ant-...)" style="
+            width:100%;padding:0.6rem 0.9rem;background:var(--surface2);
+            border:1px solid var(--border);border-radius:8px;color:var(--text);
+            font-size:0.82rem;outline:none;margin-bottom:0.75rem;font-family:monospace;
+            box-sizing:border-box;
+        " onkeydown="if(event.key==='Enter') saveKey();"/>
+        <button onclick="saveKey()" style="
+            width:100%;background:var(--accent);border:none;border-radius:8px;
+            color:#000;font-weight:700;padding:0.65rem;cursor:pointer;font-size:0.9rem;
+            box-sizing:border-box;
+        ">Start Talking to Your Advocate →</button>
+        <p style="color:var(--text-dim);font-size:0.72rem;margin-top:0.6rem;text-align:center;">
+            Key stored only in your browser. Never sent to our servers except to reach Anthropic directly.
+        </p>
+    </div>
+
+    <div class="chat-messages" id="chatMessages" style="display:none;">
+        <div class="chat-msg agent">I'm your advocate. Tell me what you're facing — a denial, a letter, a situation where a system failed you. I'll tell you your rights and what to do right now.</div>
+    </div>
+    <div id="starterWrap" style="display:none;">
+        <div class="chat-starter">Not sure where to start?</div>
+        <div class="chat-starter-btns">
+            <button class="starter-btn" onclick="sendStarter('My disability claim was denied')">Disability denied</button>
+            <button class="starter-btn" onclick="sendStarter('My VA benefits claim was denied')">VA claim denied</button>
+            <button class="starter-btn" onclick="sendStarter('My insurance denied my mental health treatment')">Insurance denial</button>
+            <button class="starter-btn" onclick="sendStarter('I was fired and I think it was discrimination')">Job discrimination</button>
+            <button class="starter-btn" onclick="sendStarter('I need a protective order and the court denied it')">Protective order</button>
+            <button class="starter-btn" onclick="sendStarter('My wages were stolen by my employer')">Wage theft</button>
+        </div>
+    </div>
+    <div class="chat-input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Describe what happened..." rows="2"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+        <button class="chat-send" id="chatSend" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+let evidenceDB = {};
+let currentCategory = null;
+let currentDenialIndex = null;
+
+// Load data
+async function loadData() {
+    const resp = await fetch('/api/categories');
+    const categories = await resp.json();
+
+    for (const catId of categories) {
+        const catResp = await fetch(`/api/category/${catId}`);
+        evidenceDB[catId] = await catResp.json();
+    }
+
+    renderCategories();
+}
+
+function renderCategories() {
+    const container = document.getElementById('categoriesView');
+    container.innerHTML = '';
+    container.style.display = '';
+
+    for (const [id, cat] of Object.entries(evidenceDB)) {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.onclick = () => showCategory(id);
+
+        const denialCount = cat.denials ? cat.denials.length : 0;
+        card.innerHTML = `
+            <h2>${cat.name}</h2>
+            <p>${cat.description}</p>
+            <span class="count">${denialCount} common denial${denialCount !== 1 ? 's' : ''} covered</span>
+        `;
+        container.appendChild(card);
+    }
+}
+
+function showCategory(catId) {
+    currentCategory = catId;
+    const cat = evidenceDB[catId];
+
+    document.getElementById('categoriesView').style.display = 'none';
+    document.getElementById('searchResults').classList.remove('active');
+    document.getElementById('packetView').classList.remove('active');
+
+    const list = document.getElementById('denialList');
+    list.classList.add('active');
+
+    let html = `<button class="back-btn" onclick="goHome()">&#8592; Back to all categories</button>`;
+    html += `<h2 style="margin-bottom:1rem; color: var(--accent)">${cat.name}</h2>`;
+
+    cat.denials.forEach((denial, i) => {
+        html += `
+            <div class="denial-card" onclick="showPacket('${catId}', ${i})">
+                <h3>${denial.title}</h3>
+                <p>${denial.description}</p>
+            </div>
+        `;
+    });
+
+    list.innerHTML = html;
+}
+
+function showPacket(catId, denialIndex) {
+    currentCategory = catId;
+    currentDenialIndex = denialIndex;
+    const denial = evidenceDB[catId].denials[denialIndex];
+
+    document.getElementById('categoriesView').style.display = 'none';
+    document.getElementById('denialList').classList.remove('active');
+    document.getElementById('searchResults').classList.remove('active');
+
+    const view = document.getElementById('packetView');
+    view.classList.add('active');
+
+    let html = `
+        <button class="back-btn" onclick="showCategory('${catId}')">&#8592; Back to ${evidenceDB[catId].name}</button>
+
+        <h2 style="color: var(--warning); margin-bottom: 0.5rem;">${denial.title}</h2>
+        <p style="color: var(--text-dim); margin-bottom: 1.5rem;">${denial.description}</p>
+
+        <div class="packet-actions">
+            <button class="print-btn" onclick="window.print()">Print Evidence Packet</button>
+            <button class="print-btn" style="background: var(--accent)" onclick="copyAll()">Copy All to Clipboard</button>
+        </div>
+    `;
+
+    // What They Say
+    html += `
+        <div class="packet-section what-they-say">
+            <h3>What They Tell You</h3>
+            <div class="they-say-quote">"${denial.what_they_say}"</div>
+        </div>
+    `;
+
+    // What the Data Says
+    html += `
+        <div class="packet-section what-data-says">
+            <h3>What the Data Actually Says</h3>
+            <div class="data-says-text">${denial.what_the_data_says}</div>
+        </div>
+    `;
+
+    // Peer-Reviewed Studies
+    html += `<div class="packet-section studies"><h3>Peer-Reviewed Evidence (${denial.studies.length} studies)</h3>`;
+    denial.studies.forEach(s => {
+        html += `
+            <div class="study-item">
+                <div class="study-title">${s.title}</div>
+                <div class="study-meta">${s.authors} | ${s.journal} (${s.year}) ${s.volume}</div>
+                <div class="study-finding">${s.finding}</div>
+                ${s.doi ? `<div class="study-doi">DOI: ${s.doi}</div>` : ''}
+            </div>
+        `;
+    });
+    html += `</div>`;
+
+    // Case Law
+    if (denial.case_law && denial.case_law.length > 0) {
+        html += `<div class="packet-section case-law"><h3>Case Law & Precedent (${denial.case_law.length} cases)</h3>`;
+        denial.case_law.forEach(c => {
+            html += `
+                <div class="case-item">
+                    <div class="case-name">${c.case}</div>
+                    <div class="case-year">${c.year}</div>
+                    <div class="case-ruling">${c.ruling}</div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+
+    // Federal Law
+    if (denial.federal_law && denial.federal_law.length > 0) {
+        html += `<div class="packet-section"><h3>Applicable Federal & State Law</h3><ul class="law-list">`;
+        denial.federal_law.forEach(law => {
+            html += `<li>${law}</li>`;
+        });
+        html += `</ul></div>`;
+    }
+
+    // Damages / Stats
+    if (denial.damages_data) {
+        html += `<div class="packet-section"><h3>Key Numbers</h3><div class="damages-grid">`;
+        for (const [key, val] of Object.entries(denial.damages_data)) {
+            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            html += `
+                <div class="damage-stat">
+                    <div class="stat-value">${val}</div>
+                    <div class="stat-label">${label}</div>
+                </div>
+            `;
+        }
+        html += `</div></div>`;
+    }
+
+    // Success Rate
+    if (denial.success_rate) {
+        html += `
+            <div class="packet-section">
+                <h3>Your Odds</h3>
+                <div class="success-box">${denial.success_rate}</div>
+            </div>
+        `;
+    }
+
+    // Appeal Template
+    if (denial.appeal_template) {
+        html += `
+            <div class="packet-section template">
+                <h3>Appeal Template — Copy and Customize</h3>
+                <div class="appeal-text" id="appealText">
+                    <button class="copy-btn" onclick="copyAppeal(this)">Copy</button>
+                    ${denial.appeal_template}
+                </div>
+            </div>
+        `;
+    }
+
+    // Tips
+    if (denial.tips && denial.tips.length > 0) {
+        html += `<div class="packet-section"><h3>What You Should Do Right Now</h3>`;
+        denial.tips.forEach(tip => {
+            html += `
+                <div class="tip-item">
+                    <span class="tip-bullet">&#10003;</span>
+                    <span class="tip-text">${tip}</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+
+    // Generate Appeal Letter section
+    html += `
+        <div class="appeal-gen-section" id="appealGenSection">
+            <h3>Generate Your Personalized Appeal Letter</h3>
+            <p class="appeal-gen-desc">
+                Claude will write a complete, formal appeal letter using the real citations and case law above, tailored to your specific situation. Ready to print, sign, and mail.
+                <br><span style="color:var(--text-dim);font-size:0.82rem;">(Requires your Anthropic API key — same key as the chat advocate)</span>
+            </p>
+            <div class="appeal-gen-form" id="appealGenForm">
+                <textarea id="appealPersonalContext" placeholder="Describe your situation: What happened? When was the denial? What is your condition or circumstance? The more detail, the better the letter. (Example: I was diagnosed with PTSD in 2022 after military service. My claim was denied in December 2025 saying my condition pre-existed my service. My symptoms began during my second deployment in 2019.)"
+                    rows="4"></textarea>
+                <div class="appeal-gen-row">
+                    <input type="date" id="appealDenialDate" placeholder="Denial date (optional)">
+                    <input type="number" id="appealAceScore" min="0" max="10" placeholder="ACE score 0-10 (optional)">
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                    <button class="appeal-gen-btn" id="appealGenBtn" onclick="generateAppealLetter('${catId}', ${denialIndex})">
+                        Generate My Appeal Letter
+                    </button>
+                    <span style="font-size:0.78rem;color:var(--text-dim);">~30-60 seconds to generate</span>
+                </div>
+            </div>
+            <div class="appeal-letter-output" id="appealLetterOutput">
+                <div class="appeal-letter-text" id="appealLetterText"></div>
+                <div class="appeal-letter-actions" id="appealLetterActions" style="display:none;">
+                    <button class="copy-btn" style="position:static;" onclick="copyAppealLetter()">Copy Letter</button>
+                    <button class="print-btn" onclick="window.print()">Print</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    view.innerHTML = html;
+    window.scrollTo(0, 0);
+}
+
+function goHome() {
+    document.getElementById('denialList').classList.remove('active');
+    document.getElementById('packetView').classList.remove('active');
+    document.getElementById('searchResults').classList.remove('active');
+    document.getElementById('categoriesView').style.display = '';
+    renderCategories();
+    currentCategory = null;
+    currentDenialIndex = null;
+    document.getElementById('searchBox').value = '';
+}
+
+function copyAppeal(btn) {
+    const text = document.getElementById('appealText').innerText.replace('Copy', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+function copyAll() {
+    const packetView = document.getElementById('packetView');
+    const text = packetView.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Full evidence packet copied to clipboard.');
+    });
+}
+
+// ── Deadline Calculator ───────────────────────────────────────────────────────
+
+function toggleDeadlineCalc() {
+    const panel = document.getElementById('deadlineCalcPanel');
+    const label = document.getElementById('deadlineToggleLabel');
+    const isOpen = panel.classList.toggle('open');
+    label.textContent = isOpen ? 'CLOSE ▴' : 'OPEN ▾';
+}
+
+async function calcDeadline() {
+    const system = document.getElementById('deadlineSystemSelect').value;
+    const dateVal = document.getElementById('deadlineDenialDate').value;
+    const resultEl = document.getElementById('deadlineResult');
+
+    if (!system) {
+        resultEl.style.display = 'block';
+        resultEl.className = 'deadline-result watch';
+        resultEl.innerHTML = '<strong style="color:var(--warning)">Select your system type first.</strong>';
+        return;
+    }
+
+    const url = dateVal
+        ? `/api/deadline_date/${system}?denial_date=${dateVal}`
+        : `/api/deadline_date/${system}`;
+
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (data.error) {
+        resultEl.style.display = 'block';
+        resultEl.className = 'deadline-result watch';
+        resultEl.innerHTML = `<strong style="color:var(--danger)">${data.error}</strong>`;
+        return;
+    }
+
+    let urgencyClass = 'ok';
+    let dateColor = 'var(--success)';
+    if (data.urgency === 'EXPIRED') { urgencyClass = 'expired'; dateColor = 'var(--danger)'; }
+    else if (data.urgency === 'TODAY') { urgencyClass = 'today'; dateColor = 'var(--danger)'; }
+    else if (data.urgency === 'CRITICAL') { urgencyClass = 'critical'; dateColor = 'var(--danger)'; }
+    else if (data.urgency === 'URGENT') { urgencyClass = 'urgent'; dateColor = 'var(--warning)'; }
+    else if (data.urgency === 'WATCH') { urgencyClass = 'watch'; dateColor = 'var(--warning)'; }
+
+    let html = '';
+
+    if (data.deadline_formatted) {
+        html += `<div class="deadline-big-date" style="color:${dateColor}">
+            Deadline: ${data.deadline_formatted}
+        </div>`;
+        if (data.days_remaining !== undefined) {
+            const dr = data.days_remaining;
+            html += `<div class="deadline-days-remaining" style="color:${dateColor}">
+                ${dr < 0 ? `${Math.abs(dr)} days PAST deadline` : dr === 0 ? 'DUE TODAY' : `${dr} days remaining`}
+            </div>`;
+        }
+        if (data.urgency_message) {
+            html += `<div class="urgency-msg" style="font-weight:600;margin-bottom:0.5rem;color:${dateColor}">${data.urgency}</div>`;
+            html += `<div class="deadline-urgency-msg">${data.urgency_message}</div>`;
+        }
+    } else {
+        html += `<div style="color:var(--accent);font-weight:600;margin-bottom:0.5rem;">${data.name}</div>`;
+        html += `<div style="color:var(--text);margin-bottom:0.5rem;">${data.initial_appeal}</div>`;
+    }
+
+    if (data.critical_note) {
+        html += `<div class="crit-note"><strong style="color:var(--warning)">Critical:</strong> ${data.critical_note}</div>`;
+    }
+
+    if (data.fee_waiver) {
+        html += `<div style="font-size:0.82rem;color:var(--success);margin-top:0.5rem;">
+            <strong>Filing fees:</strong> ${data.fee_waiver}
+        </div>`;
+    }
+
+    if (data.levels && data.levels.length) {
+        html += `<div class="deadline-levels"><strong style="font-size:0.85rem;color:var(--text)">Appeal pathways:</strong>`;
+        data.levels.forEach(lv => {
+            html += `<div class="deadline-level-item">
+                <div class="deadline-level-name">${lv.name} — ${lv.deadline}</div>
+                <div class="deadline-level-how">${lv.how}</div>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+
+    if (data.right_to_representation) {
+        html += `<div style="font-size:0.82rem;color:var(--text-dim);margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.75rem;">
+            <strong style="color:var(--text)">Free representation:</strong> ${data.right_to_representation}
+        </div>`;
+    }
+
+    resultEl.style.display = 'block';
+    resultEl.className = `deadline-result ${urgencyClass}`;
+    resultEl.innerHTML = html;
+}
+
+
+// ── ACE Score Widget ──────────────────────────────────────────────────────────
+
+function toggleAceWidget() {
+    const body = document.getElementById('aceWidgetBody');
+    const chevron = document.getElementById('aceToggleChevron');
+    const isOpen = body.classList.toggle('open');
+    chevron.textContent = isOpen ? '▴ Hide' : '▾ Show';
+    if (isOpen && document.getElementById('aceSlider').value === '0') {
+        updateAce(0);
+    }
+}
+
+async function updateAce(score) {
+    document.getElementById('aceScoreDisplay').textContent = score;
+    const resp = await fetch(`/api/ace_impact/${score}`);
+    const data = await resp.json();
+    if (data.error) return;
+
+    const coherencePct = data.coherence_percent;
+    let barColor = 'var(--success)';
+    if (coherencePct < 30) barColor = 'var(--danger)';
+    else if (coherencePct < 60) barColor = 'var(--warning)';
+
+    let html = `
+        <div class="ace-result-grid">
+            <div class="ace-stat">
+                <div class="ace-stat-val" style="color:${barColor}">${coherencePct}%</div>
+                <div class="ace-stat-label">Biological Coherence Remaining</div>
+            </div>
+            <div class="ace-stat">
+                <div class="ace-stat-val" style="color:var(--danger)">${data.coherence_lost_percent}%</div>
+                <div class="ace-stat-label">Coherence Lost to Adversity</div>
+            </div>
+            <div class="ace-stat">
+                <div class="ace-stat-val" style="color:var(--text-dim)">${data.urgency.toUpperCase()}</div>
+                <div class="ace-stat-label">Clinical Urgency</div>
+            </div>
+        </div>
+        <div class="ace-phase">${data.biological_phase}</div>
+    `;
+
+    if (data.known_health_outcomes && data.known_health_outcomes.length) {
+        html += `<div class="ace-outcomes">
+            <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.5rem;">
+                Known health outcomes at ACE score ${score} (peer-reviewed literature):
+            </p>`;
+        data.known_health_outcomes.forEach(o => {
+            html += `<div class="ace-outcome-item">${o}</div>`;
+        });
+        html += `</div>`;
+    }
+
+    html += `<p style="font-size:0.75rem;color:var(--text-dim);margin-top:0.75rem;">
+        Model: C = C₀ × exp(−(0.416×n)^0.82) | Felitti et al. (1998), Am J Prev Med, N=17,337, R²=0.987
+    </p>`;
+
+    document.getElementById('aceResultArea').innerHTML = html;
+}
+
+
+// ── Generate Appeal Letter ────────────────────────────────────────────────────
+
+let appealGenStreaming = false;
+
+async function generateAppealLetter(catId, denialIndex) {
+    if (appealGenStreaming) return;
+
+    const apiKey = localStorage.getItem('advocate_api_key') || '';
+    const serverHasKey = false; // server env key check handled server-side — no key = 403
+
+    const personalContext = document.getElementById('appealPersonalContext').value.trim();
+    if (!personalContext) {
+        alert('Please describe your situation first — the more detail, the better the letter.');
+        document.getElementById('appealPersonalContext').focus();
+        return;
+    }
+
+    const denialDate = document.getElementById('appealDenialDate').value || '';
+    const aceScore = document.getElementById('appealAceScore').value || null;
+
+    const outputEl = document.getElementById('appealLetterOutput');
+    const textEl = document.getElementById('appealLetterText');
+    const actionsEl = document.getElementById('appealLetterActions');
+    const btn = document.getElementById('appealGenBtn');
+
+    outputEl.classList.add('active');
+    textEl.textContent = '';
+    textEl.classList.add('streaming');
+    actionsEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    appealGenStreaming = true;
+
+    try {
+        const resp = await fetch('/api/generate_appeal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                category_id: catId,
+                denial_index: denialIndex,
+                personal_context: personalContext,
+                ace_score: aceScore ? parseInt(aceScore) : null,
+                denial_date: denialDate || null,
+                api_key: apiKey
+            })
+        });
+
+        if (!resp.ok) {
+            const e = await resp.json();
+            if (e.error === 'NO_KEY') {
+                textEl.classList.remove('streaming');
+                textEl.textContent = 'API key required. Open the chat widget (💬 bottom right) to set up your free Anthropic key, then try again.';
+                return;
+            }
+            throw new Error(e.error || 'Generation failed');
+        }
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let letterText = '';
+
+        function read() {
+            reader.read().then(({ done, value }) => {
+                if (done) {
+                    finishAppealGen(textEl, btn, actionsEl, letterText);
+                    return;
+                }
+                const chunk = decoder.decode(value);
+                for (const line of chunk.split('\n')) {
+                    if (line.startsWith('data: ')) {
+                        const payload = line.slice(6);
+                        if (payload === '[DONE]') {
+                            finishAppealGen(textEl, btn, actionsEl, letterText);
+                            return;
+                        }
+                        try {
+                            const parsed = JSON.parse(payload);
+                            if (parsed.text) {
+                                letterText += parsed.text;
+                                textEl.textContent = letterText;
+                                outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                        } catch(e) {}
+                    }
+                }
+                read();
+            });
+        }
+        read();
+    } catch(err) {
+        textEl.classList.remove('streaming');
+        textEl.textContent = `Error: ${err.message}. You can still copy the evidence template above manually.`;
+        btn.disabled = false;
+        btn.textContent = 'Generate My Appeal Letter';
+        appealGenStreaming = false;
+    }
+}
+
+function finishAppealGen(textEl, btn, actionsEl, text) {
+    textEl.classList.remove('streaming');
+    actionsEl.style.display = 'flex';
+    btn.disabled = false;
+    btn.textContent = 'Regenerate Letter';
+    appealGenStreaming = false;
+}
+
+function copyAppealLetter() {
+    const text = document.getElementById('appealLetterText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy Letter'; btn.classList.remove('copied'); }, 2000);
+    });
+}
+
+
+// Search
+let searchTimeout;
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+
+    document.getElementById('searchBox').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            document.getElementById('searchResults').classList.remove('active');
+            if (!currentCategory && currentDenialIndex === null) {
+                document.getElementById('categoriesView').style.display = '';
+            }
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const results = await resp.json();
+
+            document.getElementById('categoriesView').style.display = 'none';
+            document.getElementById('denialList').classList.remove('active');
+            document.getElementById('packetView').classList.remove('active');
+
+            const container = document.getElementById('searchResults');
+            container.classList.add('active');
+
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <button class="back-btn" onclick="goHome()">&#8592; Back</button>
+                    <p style="color: var(--text-dim); text-align: center; padding: 2rem;">
+                        No results found for "${query}". Try different keywords like: PTSD, disability, eviction, insurance, trafficking, burn pit, chronic pain
+                    </p>
+                `;
+                return;
+            }
+
+            let html = `<button class="back-btn" onclick="goHome()">&#8592; Back</button>`;
+            html += `<p style="color: var(--text-dim); margin-bottom: 1rem;">${results.length} result${results.length !== 1 ? 's' : ''} for "${query}"</p>`;
+
+            results.forEach(r => {
+                const catDenials = evidenceDB[r.category]?.denials || [];
+                const idx = catDenials.indexOf(r.denial);
+                const actualIdx = idx >= 0 ? idx : catDenials.findIndex(d => d.title === r.denial.title);
+
+                html += `
+                    <div class="search-result-item" onclick="showPacket('${r.category}', ${actualIdx >= 0 ? actualIdx : 0})">
+                        <span class="result-category">${r.category_name}</span>
+                        <h4>${r.denial.title}</h4>
+                        <p>${r.denial.description}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }, 300);
+    });
+});
+</script>
+
+<script>
+// ── Advocate Chat ──────────────────────────────────────────────────────────
+let chatOpen = false;
+let chatHistory = [];
+let chatStreaming = false;
+let userApiKey = localStorage.getItem('advocate_api_key') || '';
+
+function saveKey() {
+    const val = document.getElementById('keyInput').value.trim();
+    if (!val.startsWith('sk-ant-') && !val.startsWith('sk-')) {
+        alert('That doesn\'t look like an Anthropic API key. It should start with sk-ant-');
+        return;
+    }
+    userApiKey = val;
+    localStorage.setItem('advocate_api_key', val);
+    showChatReady();
+}
+
+function clearKey() {
+    userApiKey = '';
+    localStorage.removeItem('advocate_api_key');
+    showKeySetup();
+}
+
+function showKeySetup() {
+    document.getElementById('keySetup').style.display = 'block';
+    document.getElementById('chatMessages').style.display = 'none';
+    document.getElementById('starterWrap').style.display = 'none';
+    document.getElementById('chatInput').style.display = 'none';
+    document.getElementById('chatSend').style.display = 'none';
+}
+
+function showChatReady() {
+    document.getElementById('keySetup').style.display = 'none';
+    document.getElementById('chatMessages').style.display = 'flex';
+    document.getElementById('starterWrap').style.display = 'block';
+    document.getElementById('chatInput').style.display = 'block';
+    document.getElementById('chatSend').style.display = 'block';
+    setTimeout(() => document.getElementById('chatInput').focus(), 100);
+}
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chatPanel').classList.toggle('open', chatOpen);
+    if (chatOpen) {
+        if (!userApiKey) {
+            showKeySetup();
+        } else {
+            showChatReady();
+        }
+    }
+}
+
+function sendStarter(text) {
+    document.getElementById('starterWrap').style.display = 'none';
+    document.getElementById('chatInput').value = text;
+    sendMessage();
+}
+
+function sendMessage() {
+    if (chatStreaming) return;
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    document.getElementById('starterWrap').style.display = 'none';
+
+    // Add user message
+    chatHistory.push({ role: 'user', content: text });
+    appendMessage('user', text);
+
+    // Stream agent response
+    chatStreaming = true;
+    document.getElementById('chatSend').disabled = true;
+
+    const agentMsg = appendMessage('agent', '');
+    agentMsg.classList.add('streaming');
+
+    // Build context — what packet is the user looking at?
+    const context = {};
+    if (currentCategory) context.category = currentCategory;
+    if (currentDenialIndex !== null) context.denial_index = currentDenialIndex;
+
+    fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: chatHistory, context, api_key: userApiKey })
+    }).then(res => {
+        if (!res.ok) {
+            return res.json().then(e => { throw new Error(e.error || 'Agent unavailable'); });
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let agentText = '';
+
+        function read() {
+            reader.read().then(({ done, value }) => {
+                if (done) return finishStream(agentMsg, agentText);
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') return finishStream(agentMsg, agentText);
+                        try {
+                            const parsed = JSON.parse(data);
+                            if (parsed.text) {
+                                agentText += parsed.text;
+                                agentMsg.textContent = agentText;
+                                scrollChat();
+                            }
+                        } catch(e) {}
+                    }
+                }
+                read();
+            });
+        }
+        read();
+    }).catch(err => {
+        agentMsg.textContent = `Sorry — the agent is unavailable right now: ${err.message}. You can still browse the evidence database manually.`;
+        finishStream(agentMsg, '');
+    });
+
+}
+
+function finishStream(msgEl, text) {
+    msgEl.classList.remove('streaming');
+    if (text) chatHistory.push({ role: 'assistant', content: text });
+    chatStreaming = false;
+    document.getElementById('chatSend').disabled = false;
+    scrollChat();
+}
+
+function appendMessage(role, text) {
+    const messages = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.textContent = text;
+    messages.appendChild(div);
+    scrollChat();
+    return div;
+}
+
+function scrollChat() {
+    const messages = document.getElementById('chatMessages');
+    messages.scrollTop = messages.scrollHeight;
+}
+</script>
+
+<!-- ── Grounding Panel ──────────────────────────────────────────────────────── -->
+<style>
+.grounding-hint {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent, #6c63ff);
+    color: #fff;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 0.9rem 0.35rem;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    z-index: 900;
+    opacity: 0.72;
+    transition: opacity 0.2s;
+    user-select: none;
+}
+.grounding-hint:hover { opacity: 1; }
+
+.grounding-panel {
+    position: fixed;
+    inset: 0;
+    background: #0a0a14;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1.25rem 3rem;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s;
+}
+.grounding-panel.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+}
+
+.grounding-close {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #ccc;
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+.grounding-close:hover { background: rgba(255,255,255,0.08); }
+
+.grounding-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #e8e8f0;
+    margin-top: 1.5rem;
+    text-align: center;
+}
+.grounding-subtitle {
+    font-size: 0.88rem;
+    color: #888;
+    margin-top: 0.3rem;
+    text-align: center;
+    max-width: 340px;
+}
+
+/* Breathing ring */
+.breathe-wrap {
+    margin: 1.5rem auto 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.breathe-ring {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #6c63ff55 0%, transparent 70%);
+    border: 2px solid #6c63ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    color: #a0a0c0;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.05s;
+}
+.breathe-ring.breathing-in  { animation: breatheIn  4s ease-in-out forwards; }
+.breathe-ring.breathing-out { animation: breatheOut 4s ease-in-out forwards; }
+.breathe-ring.breathing-hold { animation: none; transform: scale(1.35); }
+@keyframes breatheIn  { from { transform: scale(1); } to { transform: scale(1.35); } }
+@keyframes breatheOut { from { transform: scale(1.35); } to { transform: scale(1); } }
+.breathe-label {
+    font-size: 0.75rem;
+    color: #6c63ff;
+    letter-spacing: 0.08em;
+    min-height: 1.1em;
+    text-align: center;
+}
+
+/* 5-4-3-2-1 steps */
+.grounding-steps {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.grounding-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+}
+.grounding-step.done {
+    background: rgba(108,99,255,0.12);
+    border-color: rgba(108,99,255,0.4);
+}
+.step-num {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #6c63ff;
+    min-width: 1.5rem;
+    line-height: 1.3;
+}
+.step-body { flex: 1; }
+.step-verb {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #a0a0c0;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.step-desc {
+    font-size: 0.85rem;
+    color: #d0d0e0;
+    margin-top: 0.15rem;
+    line-height: 1.45;
+}
+.step-check {
+    font-size: 1rem;
+    color: #6c63ff;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.grounding-step.done .step-check { opacity: 1; }
+
+/* Physical grounding cards */
+.grounding-cards {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1.1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+.grounding-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #b0b0c8;
+    line-height: 1.4;
+}
+.grounding-card .card-icon { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
+
+/* "What is true right now" */
+.grounding-true {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1.1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+}
+.grounding-true h4 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6c63ff;
+    margin: 0 0 0.5rem;
+}
+.grounding-true ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.84rem;
+    color: #c0c0d8;
+    line-height: 1.65;
+}
+
+.grounding-return {
+    margin-top: 1.75rem;
+    background: #6c63ff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+}
+.grounding-return:hover { background: #7c73ff; }
+</style>
+
+<!-- Swipe hint tab on right edge -->
+<div class="grounding-hint" id="groundingHint" onclick="openGrounding()" title="Swipe left or tap for grounding">
+    GROUND
+</div>
+
+<!-- Full-screen grounding panel -->
+<div class="grounding-panel" id="groundingPanel">
+    <button class="grounding-close" onclick="closeGrounding()">&#8592; Return to app</button>
+
+    <div class="grounding-title">You're still here. That matters.</div>
+    <div class="grounding-subtitle">This is a lot to carry. Take 60 seconds. The app isn't going anywhere.</div>
+
+    <!-- Breathing ring -->
+    <div class="breathe-wrap">
+        <div class="breathe-ring" id="breatheRing" onclick="startBreathe()">TAP</div>
+        <div class="breathe-label" id="breatheLabel">tap the ring to breathe</div>
+    </div>
+
+    <!-- 5-4-3-2-1 -->
+    <div class="grounding-steps">
+        <div class="grounding-step" id="gstep5" onclick="markStep(5)">
+            <div class="step-num">5</div>
+            <div class="step-body">
+                <div class="step-verb">See</div>
+                <div class="step-desc">Name 5 things you can see right now — anything.</div>
+            </div>
+            <div class="step-check">&#10003;</div>
+        </div>
+        <div class="grounding-step" id="gstep4" onclick="markStep(4)">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <div class="step-verb">Touch</div>
+                <div class="step-desc">Feel 4 textures — the chair, your skin, fabric, a surface.</div>
+            </div>
+            <div class="step-check">&#10003;</div>
+        </div>
+        <div class="grounding-step" id="gstep3" onclick="markStep(3)">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <div class="step-verb">Hear</div>
+                <div class="step-desc">Listen for 3 sounds — near, far, your own breath.</div>
+            </div>
+            <div class="step-check">&#10003;</div>
+        </div>
+        <div class="grounding-step" id="gstep2" onclick="markStep(2)">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <div class="step-verb">Smell</div>
+                <div class="step-desc">Find 2 scents — real or remembered ones work too.</div>
+            </div>
+            <div class="step-check">&#10003;</div>
+        </div>
+        <div class="grounding-step" id="gstep1" onclick="markStep(1)">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <div class="step-verb">Taste</div>
+                <div class="step-desc">Notice 1 taste, or drink a sip of water slowly.</div>
+            </div>
+            <div class="step-check">&#10003;</div>
+        </div>
+    </div>
+
+    <!-- Physical grounding cards -->
+    <div class="grounding-cards">
+        <div class="grounding-card">
+            <span class="card-icon">&#10052;</span>
+            Hold something cold — ice, a cold glass, metal.
+        </div>
+        <div class="grounding-card">
+            <span class="card-icon">&#128062;</span>
+            Press your feet flat on the floor. Feel the weight.
+        </div>
+        <div class="grounding-card">
+            <span class="card-icon">&#9749;</span>
+            Drink something warm or cold. Notice the temperature.
+        </div>
+        <div class="grounding-card">
+            <span class="card-icon">&#128147;</span>
+            Put one hand on your chest. Feel it rise and fall.
+        </div>
+    </div>
+
+    <!-- What is true right now -->
+    <div class="grounding-true">
+        <h4>What is true right now</h4>
+        <ul>
+            <li>You are safe enough to read this.</li>
+            <li>You reached out. That took courage.</li>
+            <li>The system failed you — that is not your fault.</li>
+            <li>There are people whose job is to help you fight this.</li>
+            <li>You do not have to solve it all today.</li>
+        </ul>
+    </div>
+
+    <button class="grounding-return" onclick="closeGrounding()">I'm ready to keep going</button>
+</div>
+
+<script>
+// ── Grounding panel ─────────────────────────────────────────────────────────
+function openGrounding() {
+    document.getElementById('groundingPanel').classList.add('open');
+    document.getElementById('groundingHint').style.display = 'none';
+    // reset steps
+    [5,4,3,2,1].forEach(n => document.getElementById('gstep'+n).classList.remove('done'));
+    stopBreathe();
+}
+
+function closeGrounding() {
+    document.getElementById('groundingPanel').classList.remove('open');
+    document.getElementById('groundingHint').style.display = '';
+    stopBreathe();
+}
+
+function markStep(n) {
+    const el = document.getElementById('gstep'+n);
+    el.classList.toggle('done');
+}
+
+// Breathing ring
+let breatheTimer = null;
+let breathePhase = 0;
+const breatheSeq = [
+    { label: 'breathe in…', cls: 'breathing-in',  dur: 4000 },
+    { label: 'hold…',       cls: 'breathing-hold', dur: 2000 },
+    { label: 'breathe out…',cls: 'breathing-out',  dur: 4000 },
+    { label: 'hold…',       cls: 'breathing-hold', dur: 2000 },
+];
+
+function startBreathe() {
+    if (breatheTimer) return;
+    breathePhase = 0;
+    runBreathe();
+}
+
+function runBreathe() {
+    const ring  = document.getElementById('breatheRing');
+    const label = document.getElementById('breatheLabel');
+    const phase = breatheSeq[breathePhase % breatheSeq.length];
+    ring.className  = 'breathe-ring ' + phase.cls;
+    label.textContent = phase.label;
+    breatheTimer = setTimeout(() => {
+        breathePhase++;
+        breatheTimer = null;
+        runBreathe();
+    }, phase.dur);
+}
+
+function stopBreathe() {
+    if (breatheTimer) { clearTimeout(breatheTimer); breatheTimer = null; }
+    const ring  = document.getElementById('breatheRing');
+    const label = document.getElementById('breatheLabel');
+    if (ring)  { ring.className = 'breathe-ring'; ring.textContent = 'TAP'; }
+    if (label) label.textContent = 'tap the ring to breathe';
+    breathePhase = 0;
+}
+
+// Keyboard escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('groundingPanel').classList.contains('open')) {
+        closeGrounding();
+    }
+});
+
+// Touch swipe-left to open grounding
+(function() {
+    let tx0, ty0, t0;
+    document.addEventListener('touchstart', e => {
+        tx0 = e.touches[0].clientX;
+        ty0 = e.touches[0].clientY;
+        t0  = Date.now();
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+        if (document.getElementById('groundingPanel').classList.contains('open')) return;
+        const dx = e.changedTouches[0].clientX - tx0;
+        const dy = e.changedTouches[0].clientY - ty0;
+        const dt = Date.now() - t0;
+        // swipe left: dx < -60, more horizontal than vertical, under 400ms
+        if (dx < -60 && Math.abs(dx) > Math.abs(dy) && dt < 400) {
+            openGrounding();
+        }
+    }, { passive: true });
+})();
+</script>
+
+</body>
+</html>
