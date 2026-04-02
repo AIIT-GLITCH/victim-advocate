@@ -148,6 +148,54 @@
             margin-top: 0.75rem;
         }
 
+        /* Donation banner */
+        .donate-banner {
+            background: linear-gradient(135deg, #1a1200 0%, #2a1e00 100%);
+            border-top: 1px solid var(--gold);
+            border-bottom: 1px solid var(--gold);
+            padding: 1.2rem 2rem;
+            text-align: center;
+        }
+
+        .donate-banner p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .donate-banner p strong {
+            color: var(--text);
+        }
+
+        .donate-btn {
+            display: inline-block;
+            background: var(--gold);
+            color: #000;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 0.65rem 2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .donate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .donate-note {
+            display: block;
+            margin-top: 0.6rem;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+
         /* Denial list */
         .denial-list {
             display: none;
@@ -994,6 +1042,15 @@
     <span class="free-badge">100% FREE — NO ACCOUNT REQUIRED</span>
 </div>
 
+<!-- DONATION BANNER -->
+<div class="donate-banner">
+    <p><strong>This tool is free.</strong> All donations go directly to research and feeding Rhet's family.</p>
+    <a class="donate-btn" href="https://buy.stripe.com/test_dRm14h8ZB4rc6jzcEDcAo00" target="_blank" rel="noopener">
+        &#9733; Support This Work
+    </a>
+    <span class="donate-note">Secure payment via Stripe &nbsp;|&nbsp; Any amount helps</span>
+</div>
+
 <div class="search-container">
     <input type="text" class="search-box" id="searchBox"
         placeholder="Search: PTSD, disability, eviction, trafficking, insurance denial, burn pit...">
@@ -1077,6 +1134,31 @@
         <p><strong>988 Suicide & Crisis Lifeline:</strong> Call or text 988</p>
         <p><strong>National Child Abuse Hotline:</strong> 1-800-422-4453</p>
         <p><strong>SAMHSA Helpline:</strong> 1-800-662-4357</p>
+    </div>
+    <div style="background:var(--surface2); border-radius:12px; padding:1.25rem; margin:1.5rem auto; max-width:600px; text-align:left;">
+        <h4 style="color:var(--warning); margin-bottom:0.5rem;">Something Wrong? Let Us Know</h4>
+        <p style="font-size:0.85rem; margin-bottom:0.75rem;">If a citation is outdated, a link is broken, or something isn't working right — tell us so we can fix it.</p>
+        <button onclick="document.getElementById('reportForm').style.display = document.getElementById('reportForm').style.display === 'none' ? 'block' : 'none'" style="background:var(--surface); border:1px solid var(--border); color:var(--accent); padding:0.5rem 1.25rem; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">Report a Problem</button>
+        <div id="reportForm" style="display:none; margin-top:1rem;">
+            <select id="reportType" style="width:100%; padding:0.5rem; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem;">
+                <option value="">Select issue type...</option>
+                <option value="broken-link">Broken link or citation</option>
+                <option value="outdated">Outdated information</option>
+                <option value="missing">Missing category or issue</option>
+                <option value="app-bug">App not working correctly</option>
+                <option value="advocate-issue">Chat advocate issue</option>
+                <option value="other">Other</option>
+            </select>
+            <textarea id="reportDetail" placeholder="Describe the issue..." style="width:100%; padding:0.75rem; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:8px; min-height:80px; resize:vertical; font-family:inherit; font-size:0.85rem; margin-bottom:0.5rem;"></textarea>
+            <button onclick="submitReport()" style="background:linear-gradient(135deg, var(--accent), var(--accent2)); border:none; color:white; padding:0.5rem 1.5rem; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">Submit Report</button>
+            <div id="reportStatus" style="margin-top:0.5rem; font-size:0.82rem; color:var(--success); display:none;"></div>
+        </div>
+        <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--border);">
+            <p style="font-size:0.82rem; color:var(--text-dim);">
+                <strong style="color:var(--text);">Is your situation not listed?</strong> We handle special cases directly.
+                Email <a href="mailto:Rhetcathcommunicaton@gmail.com" style="color:var(--accent); text-decoration:none; font-weight:600;">Rhetcathcommunicaton@gmail.com</a> and a real human will review your case.
+            </p>
+        </div>
     </div>
     <p style="margin-top:1.5rem">AIIT-THRESI Research Initiative | 2026</p>
     <p>Every citation is real. Every study is published. Every case is on the record.</p>
@@ -1764,6 +1846,47 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
+// ── Report a Problem ──────────────────────────────────────────────────────
+function submitReport() {
+    const type = document.getElementById('reportType').value;
+    const detail = document.getElementById('reportDetail').value.trim();
+    const status = document.getElementById('reportStatus');
+
+    if (!type) {
+        status.style.display = 'block';
+        status.style.color = 'var(--warning)';
+        status.textContent = 'Please select an issue type.';
+        return;
+    }
+    if (!detail) {
+        status.style.display = 'block';
+        status.style.color = 'var(--warning)';
+        status.textContent = 'Please describe the issue.';
+        return;
+    }
+
+    fetch('/api/report', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({type: type, detail: detail, timestamp: new Date().toISOString()})
+    })
+    .then(r => r.json())
+    .then(data => {
+        status.style.display = 'block';
+        status.style.color = 'var(--success)';
+        status.textContent = 'Thank you. Your report has been received and will be reviewed.';
+        document.getElementById('reportType').value = '';
+        document.getElementById('reportDetail').value = '';
+    })
+    .catch(() => {
+        status.style.display = 'block';
+        status.style.color = 'var(--success)';
+        status.textContent = 'Thank you. If this is urgent, please email Rhetcathcommunicaton@gmail.com directly.';
+    });
+}
+</script>
+
+<script>
 // ── Advocate Chat ──────────────────────────────────────────────────────────
 let chatOpen = false;
 let chatHistory = [];
@@ -2008,11 +2131,11 @@ function scrollChat() {
     color: #a0a0c0;
     letter-spacing: 0.05em;
     cursor: pointer;
-    transition: transform 0.05s;
 }
 .breathe-ring.breathing-in  { animation: breatheIn  4s ease-in-out forwards; }
 .breathe-ring.breathing-out { animation: breatheOut 4s ease-in-out forwards; }
-.breathe-ring.breathing-hold { animation: none; transform: scale(1.35); }
+.breathe-ring.breathing-hold-in  { animation: none; transform: scale(1.35); }
+.breathe-ring.breathing-hold-out { animation: none; transform: scale(1); }
 @keyframes breatheIn  { from { transform: scale(1); } to { transform: scale(1.35); } }
 @keyframes breatheOut { from { transform: scale(1.35); } to { transform: scale(1); } }
 .breathe-label {
@@ -2139,7 +2262,7 @@ function scrollChat() {
 
 <!-- Swipe hint tab on right edge -->
 <div class="grounding-hint" id="groundingHint" onclick="openGrounding()" title="Swipe left or tap for grounding">
-    GROUND
+    You okay?
 </div>
 
 <!-- Full-screen grounding panel -->
@@ -2147,16 +2270,53 @@ function scrollChat() {
     <button class="grounding-close" onclick="closeGrounding()">&#8592; Return to app</button>
 
     <div class="grounding-title">You're still here. That matters.</div>
-    <div class="grounding-subtitle">This is a lot to carry. Take 60 seconds. The app isn't going anywhere.</div>
+    <div class="grounding-subtitle">This is a lot to carry. Let's take a breath first.</div>
 
-    <!-- Breathing ring -->
-    <div class="breathe-wrap">
-        <div class="breathe-ring" id="breatheRing" onclick="startBreathe()">TAP</div>
-        <div class="breathe-label" id="breatheLabel">tap the ring to breathe</div>
+    <!-- PHASE 1: Breathing ring — auto 2 cycles then stops -->
+    <div id="breathePhase">
+        <div class="breathe-wrap">
+            <div class="breathe-ring" id="breatheRing" onclick="startTimedBreathe()">TAP</div>
+            <div class="breathe-label" id="breatheLabel">tap to begin — just 2 breaths</div>
+        </div>
     </div>
 
-    <!-- 5-4-3-2-1 -->
-    <div class="grounding-steps">
+    <!-- PHASE 2: Post-breathe check-in (hidden until breathing done) -->
+    <div id="postBreathePhase" style="display:none; text-align:center; padding: 1.5rem;">
+        <div style="color:#44cc88; font-size:1.2rem; margin-bottom:1rem;">Okay. Now let's move onto these 5 steps.</div>
+        <div style="color:#8888a0; font-size:0.9rem; margin-bottom:1.5rem;">Unless you'd like to breathe a little longer?</div>
+        <div style="display:flex; gap:1rem; justify-content:center; margin-bottom:1rem;">
+            <button onclick="extendBreathe(5)" style="background:#2a2a3a; color:#e0e0e8; border:1px solid #4a9eff; border-radius:8px; padding:0.7rem 1.5rem; cursor:pointer; font-size:1rem;">5 more seconds</button>
+            <button onclick="extendBreathe(10)" style="background:#2a2a3a; color:#e0e0e8; border:1px solid #7c5cff; border-radius:8px; padding:0.7rem 1.5rem; cursor:pointer; font-size:1rem;">10 more seconds</button>
+        </div>
+        <button onclick="showGroundingSteps()" style="background:#44cc88; color:#0a0a0f; border:none; border-radius:8px; padding:0.7rem 2rem; cursor:pointer; font-size:1rem; font-weight:bold;">I'm ready for the steps</button>
+    </div>
+
+    <!-- PHASE 3: Stress check (hidden, shown if user picks 10sec) -->
+    <div id="stressCheckPhase" style="display:none; text-align:center; padding: 1.5rem;">
+        <div style="color:#ffaa33; font-size:1.1rem; margin-bottom:0.8rem;">It seems like you're really feeling stressed about this all.</div>
+        <div style="color:#8888a0; font-size:0.9rem; margin-bottom:1.5rem;">Remember — we're here to help you. But we'll be here tomorrow too if this is too much right now.</div>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+            <button onclick="showGroundingSteps()" style="background:#44cc88; color:#0a0a0f; border:none; border-radius:8px; padding:0.7rem 2rem; cursor:pointer; font-size:1rem; font-weight:bold;">No, I'm feeling okay — let's keep going</button>
+            <button onclick="showTooMuch()" style="background:#2a2a3a; color:#ffaa33; border:1px solid #ffaa33; border-radius:8px; padding:0.7rem 2rem; cursor:pointer; font-size:1rem;">Yes, it is too much right now</button>
+        </div>
+    </div>
+
+    <!-- PHASE 4: Too much — email reminder (hidden) -->
+    <div id="tooMuchPhase" style="display:none; text-align:center; padding: 1.5rem;">
+        <div style="color:#e0e0e8; font-size:1.1rem; margin-bottom:0.5rem;">That's okay. That's more than okay.</div>
+        <div style="color:#8888a0; font-size:0.9rem; margin-bottom:1.5rem;">Leave us your email and we'll send you a gentle reminder tomorrow that we're still here when you're ready.</div>
+        <div style="display:flex; gap:0.5rem; justify-content:center; max-width:400px; margin:0 auto;">
+            <input type="email" id="reminderEmail" placeholder="your email" style="flex:1; background:#1a1a28; color:#e0e0e8; border:1px solid #2a2a3a; border-radius:8px; padding:0.7rem 1rem; font-size:1rem; outline:none;">
+            <button onclick="sendReminder()" style="background:#4a9eff; color:#fff; border:none; border-radius:8px; padding:0.7rem 1.5rem; cursor:pointer; font-size:1rem; font-weight:bold;">Send</button>
+        </div>
+        <div id="reminderSent" style="display:none; color:#44cc88; margin-top:1rem; font-size:0.9rem;">
+            We'll check in tomorrow. Take care of yourself tonight. You've already done the hardest part — you showed up.
+        </div>
+        <button onclick="closeGrounding()" style="background:none; color:#8888a0; border:none; margin-top:1.5rem; cursor:pointer; font-size:0.85rem; text-decoration:underline;">close for now</button>
+    </div>
+
+    <!-- 5-4-3-2-1 (hidden until breathing flow complete) -->
+    <div class="grounding-steps" id="groundingStepsSection" style="display:none;">
         <div class="grounding-step" id="gstep5" onclick="markStep(5)">
             <div class="step-num">5</div>
             <div class="step-body">
@@ -2239,9 +2399,17 @@ function scrollChat() {
 function openGrounding() {
     document.getElementById('groundingPanel').classList.add('open');
     document.getElementById('groundingHint').style.display = 'none';
-    // reset steps
+    // reset everything
     [5,4,3,2,1].forEach(n => document.getElementById('gstep'+n).classList.remove('done'));
     stopBreathe();
+    userChose10 = false;
+    // Reset all phases
+    document.getElementById('breathePhase').style.display = 'block';
+    document.getElementById('postBreathePhase').style.display = 'none';
+    document.getElementById('stressCheckPhase').style.display = 'none';
+    document.getElementById('tooMuchPhase').style.display = 'none';
+    document.getElementById('groundingStepsSection').style.display = 'none';
+    document.getElementById('reminderSent').style.display = 'none';
 }
 
 function closeGrounding() {
@@ -2255,42 +2423,149 @@ function markStep(n) {
     el.classList.toggle('done');
 }
 
-// Breathing ring
-let breatheTimer = null;
-let breathePhase = 0;
-const breatheSeq = [
-    { label: 'breathe in…', cls: 'breathing-in',  dur: 4000 },
-    { label: 'hold…',       cls: 'breathing-hold', dur: 2000 },
-    { label: 'breathe out…',cls: 'breathing-out',  dur: 4000 },
-    { label: 'hold…',       cls: 'breathing-hold', dur: 2000 },
-];
+// Breathing ring — timed, 2 full cycles then stops
+let breatheActive = false;
+let breatheTimeout = null;
+let breatheCycles = 0;
+let breatheMaxCycles = 2;
+let userChose10 = false;
 
-function startBreathe() {
-    if (breatheTimer) return;
-    breathePhase = 0;
-    runBreathe();
+function startTimedBreathe() {
+    if (breatheActive) return;
+    breatheActive = true;
+    breatheCycles = 0;
+    const ring = document.getElementById('breatheRing');
+    ring.textContent = '';
+    runBreathePhase(0);
 }
 
-function runBreathe() {
+function runBreathePhase(phase) {
+    if (!breatheActive) return;
     const ring  = document.getElementById('breatheRing');
     const label = document.getElementById('breatheLabel');
-    const phase = breatheSeq[breathePhase % breatheSeq.length];
-    ring.className  = 'breathe-ring ' + phase.cls;
-    label.textContent = phase.label;
-    breatheTimer = setTimeout(() => {
-        breathePhase++;
-        breatheTimer = null;
-        runBreathe();
-    }, phase.dur);
+    ring.className = 'breathe-ring';
+    void ring.offsetWidth;
+    if (phase === 0) {
+        label.textContent = 'breathe in…';
+        ring.classList.add('breathing-in');
+        breatheTimeout = setTimeout(() => runBreathePhase(1), 4000);
+    } else if (phase === 1) {
+        label.textContent = 'hold…';
+        ring.classList.add('breathing-hold-in');
+        breatheTimeout = setTimeout(() => runBreathePhase(2), 2000);
+    } else if (phase === 2) {
+        label.textContent = 'breathe out…';
+        ring.classList.add('breathing-out');
+        breatheTimeout = setTimeout(() => runBreathePhase(3), 4000);
+    } else {
+        label.textContent = 'hold…';
+        ring.classList.add('breathing-hold-out');
+        breatheCycles++;
+        if (breatheCycles >= breatheMaxCycles) {
+            // Done — show post-breathe check-in
+            breatheTimeout = setTimeout(() => {
+                stopBreathe();
+                document.getElementById('breathePhase').style.display = 'none';
+                document.getElementById('postBreathePhase').style.display = 'block';
+            }, 2000);
+        } else {
+            breatheTimeout = setTimeout(() => runBreathePhase(0), 2000);
+        }
+    }
+}
+
+function extendBreathe(seconds) {
+    // Hide post-breathe, show ring again
+    document.getElementById('postBreathePhase').style.display = 'none';
+    document.getElementById('breathePhase').style.display = 'block';
+
+    if (seconds >= 10) {
+        userChose10 = true;
+    }
+
+    // Calculate cycles: each cycle ~12sec (4+2+4+2), so 5sec=1 cycle, 10sec=1 cycle
+    breatheMaxCycles = 1;
+    breatheCycles = 0;
+    breatheActive = true;
+    const ring = document.getElementById('breatheRing');
+    ring.textContent = '';
+
+    // Override: after this extension, show stress check if they picked 10
+    const origDisplay = () => {
+        document.getElementById('breathePhase').style.display = 'none';
+        if (userChose10) {
+            document.getElementById('stressCheckPhase').style.display = 'block';
+        } else {
+            document.getElementById('postBreathePhase').style.display = 'block';
+        }
+    };
+
+    // Run one more cycle then show appropriate next phase
+    breatheActive = true;
+    breatheCycles = 0;
+    breatheMaxCycles = 1;
+
+    // Temporarily override the end behavior
+    const origRunPhase = runBreathePhase;
+    runBreathePhase = function(phase) {
+        if (!breatheActive) return;
+        const ring  = document.getElementById('breatheRing');
+        const label = document.getElementById('breatheLabel');
+        ring.className = 'breathe-ring';
+        void ring.offsetWidth;
+        if (phase === 0) {
+            label.textContent = 'breathe in…';
+            ring.classList.add('breathing-in');
+            breatheTimeout = setTimeout(() => runBreathePhase(1), 4000);
+        } else if (phase === 1) {
+            label.textContent = 'hold…';
+            ring.classList.add('breathing-hold-in');
+            breatheTimeout = setTimeout(() => runBreathePhase(2), 2000);
+        } else if (phase === 2) {
+            label.textContent = 'breathe out…';
+            ring.classList.add('breathing-out');
+            breatheTimeout = setTimeout(() => {
+                stopBreathe();
+                origDisplay();
+            }, 4000);
+        }
+    };
+    runBreathePhase(0);
+    // Restore after use
+    setTimeout(() => { runBreathePhase = origRunPhase; }, 15000);
+}
+
+function showGroundingSteps() {
+    document.getElementById('postBreathePhase').style.display = 'none';
+    document.getElementById('stressCheckPhase').style.display = 'none';
+    document.getElementById('groundingStepsSection').style.display = 'block';
+}
+
+function showTooMuch() {
+    document.getElementById('stressCheckPhase').style.display = 'none';
+    document.getElementById('tooMuchPhase').style.display = 'block';
+}
+
+function sendReminder() {
+    const email = document.getElementById('reminderEmail').value;
+    if (email && email.includes('@')) {
+        // Store locally for now — backend can pick this up
+        const reminders = JSON.parse(localStorage.getItem('va_reminders') || '[]');
+        reminders.push({ email: email, date: new Date().toISOString() });
+        localStorage.setItem('va_reminders', JSON.stringify(reminders));
+        document.getElementById('reminderSent').style.display = 'block';
+        document.getElementById('reminderEmail').style.display = 'none';
+        document.getElementById('reminderEmail').nextElementSibling.style.display = 'none';
+    }
 }
 
 function stopBreathe() {
-    if (breatheTimer) { clearTimeout(breatheTimer); breatheTimer = null; }
+    breatheActive = false;
+    if (breatheTimeout) { clearTimeout(breatheTimeout); breatheTimeout = null; }
     const ring  = document.getElementById('breatheRing');
     const label = document.getElementById('breatheLabel');
     if (ring)  { ring.className = 'breathe-ring'; ring.textContent = 'TAP'; }
     if (label) label.textContent = 'tap the ring to breathe';
-    breathePhase = 0;
 }
 
 // Keyboard escape
