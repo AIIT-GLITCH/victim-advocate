@@ -381,6 +381,30 @@ def mission():
     })
 
 
+# ─── Report a Problem ────────────────────────────────────────────────────────
+
+REPORTS_PATH = os.path.join(os.path.dirname(__file__), 'data', 'reports.jsonl')
+
+@app.route('/api/report', methods=['POST'])
+def submit_report():
+    """Log user-reported issues. Appends to reports.jsonl for review."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    report = {
+        'type': data.get('type', 'unknown'),
+        'detail': data.get('detail', ''),
+        'timestamp': data.get('timestamp', datetime.now().isoformat()),
+        'ip': request.remote_addr
+    }
+
+    with open(REPORTS_PATH, 'a') as f:
+        f.write(json.dumps(report) + '\n')
+
+    return jsonify({'status': 'received', 'message': 'Thank you. Your report will be reviewed.'})
+
+
 # ─── Denial as Decoherence Event (AIIT-THRESI Framework) ────────────────────
 
 @app.route('/api/denial_cost/<int:ace_score>')
@@ -653,6 +677,390 @@ APPEAL_DEADLINES = {
         ],
         'fee_waiver': 'EEOC filing: free. HUD complaint: free. Federal court: IFP waiver available.',
         'right_to_representation': 'Lambda Legal (lambdalegal.org), National Center for Lesbian Rights (nclrights.org), ACLU LGBTQ+ Rights, Transgender Law Center. Many employment discrimination attorneys work on contingency.'
+    },
+    'ada_accommodations': {
+        'name': 'ADA Accommodations Denied',
+        'initial_appeal': '180 days from discriminatory act (300 days in states with EEOC-equivalent agency)',
+        'days': 180,
+        'critical_note': 'File an EEOC charge first — this is required before you can sue under Title I (employment). For Title II (public entities) or Title III (public accommodations), you can sue directly without an EEOC charge. The 180/300-day clock runs from the date of the discriminatory act, not the date you were told about it.',
+        'levels': [
+            {'name': 'Internal Grievance (employer)', 'deadline': 'As soon as possible', 'how': 'File a written accommodation request or grievance with HR. Use email so you have a paper trail. The employer must engage in the interactive process (29 CFR 1630.9).'},
+            {'name': 'EEOC Charge', 'deadline': '180 days (300 in dual-filing states)', 'how': 'File at publicportal.eeoc.gov or call 1-800-669-4000. Required before federal suit under Title I.'},
+            {'name': 'Federal Court (Title I)', 'deadline': '90 days after EEOC Right to Sue letter', 'how': 'Civil action under 42 U.S.C. § 12112. Many disability rights attorneys work on contingency.'},
+            {'name': 'DOJ Complaint (Title II/III)', 'deadline': '180 days from act', 'how': 'File at ADA.gov or call 1-800-514-0301. DOJ can investigate and bring enforcement action.'}
+        ],
+        'fee_waiver': 'EEOC: free. DOJ complaint: free. Federal court: IFP waiver available.',
+        'right_to_representation': 'Disability Rights Advocates (dralegal.org), National Disability Rights Network (ndrn.org), your state Protection & Advocacy organization (find at ndrn.org). Many ADA attorneys work on contingency.'
+    },
+    'employment_discrimination': {
+        'name': 'Employment Discrimination & Retaliation',
+        'initial_appeal': '180 days from discriminatory act (300 days in most states)',
+        'days': 180,
+        'critical_note': 'The EEOC charge deadline is ABSOLUTE and jurisdictional — courts cannot extend it. The clock runs from the discriminatory act, not when you were told about it. File the charge immediately even if you are still gathering evidence. You can add evidence later. You cannot get the deadline back.',
+        'levels': [
+            {'name': 'EEOC Charge', 'deadline': '180 days (300 in dual-filing states)', 'how': 'File at publicportal.eeoc.gov or call 1-800-669-4000. EEOC investigates and may mediate — many cases resolve here. You receive a Right to Sue letter after investigation or after 180 days if you request it early.'},
+            {'name': 'Federal Court', 'deadline': '90 days after EEOC Right to Sue letter', 'how': 'Title VII (42 U.S.C. § 2000e), ADEA, ADA, or § 1981 civil action. Many employment attorneys work on contingency.'},
+            {'name': 'State Agency', 'deadline': 'Varies by state (often runs concurrently with EEOC)', 'how': 'Most states have their own fair employment agency. Filing with EEOC typically cross-files with state agency automatically.'}
+        ],
+        'fee_waiver': 'EEOC filing: free. Federal court: IFP waiver available.',
+        'right_to_representation': 'National Employment Law Project (nelp.org), your state bar lawyer referral service. Most employment discrimination attorneys work on contingency — no upfront cost.'
+    },
+    'snap_benefits': {
+        'name': 'SNAP / Food Assistance Denied',
+        'initial_appeal': '90 days from denial notice',
+        'days': 90,
+        'critical_note': 'Request a fair hearing IMMEDIATELY if you need benefits to continue during appeal. If you request a hearing before your benefits end, you have the right to continue receiving benefits at the same level during the appeal (7 CFR 273.15(p)). If you wait until after benefits end, this right is lost.',
+        'levels': [
+            {'name': 'Fair Hearing Request', 'deadline': '90 days from notice', 'how': 'Call or write your state SNAP agency and say "I want a fair hearing." You have the right to see your case file before the hearing. Request it at the same time.'},
+            {'name': 'State Court', 'deadline': 'Varies by state', 'how': 'If the state fair hearing decision goes against you, you can appeal to state court. File in forma pauperis if you cannot afford fees.'}
+        ],
+        'fee_waiver': 'SNAP hearings are free. State court filings: IFP waiver available.',
+        'right_to_representation': 'Legal aid organizations handle SNAP cases at no cost. Call 211 or find your local legal aid at lawhelp.org. You can also bring any person you choose to your hearing.'
+    },
+    'elder_abuse': {
+        'name': 'Elder Abuse & Nursing Home Rights',
+        'initial_appeal': 'Varies — nursing home grievances: immediate. Financial exploitation: 3-6 years civil SOL. Criminal: varies.',
+        'days': None,
+        'critical_note': 'If the elder is in immediate danger, call 911. Adult Protective Services (APS) can investigate and intervene. Every state has a Long-Term Care Ombudsman — they are free, have legal access to nursing homes, and can advocate directly on behalf of the resident. This is their entire job.',
+        'levels': [
+            {'name': 'Nursing Home Grievance', 'deadline': 'Immediate — nursing homes must respond within 5 days (42 CFR 483.10)', 'how': 'File written grievance with the nursing home administrator AND the Director of Nursing. Document everything. Request the written grievance process under 42 CFR 483.10(j).'},
+            {'name': 'Long-Term Care Ombudsman', 'deadline': 'No deadline — call immediately', 'how': 'Find your ombudsman at theconsumervoice.org/get_help. They are legally authorized to enter nursing facilities and investigate. Free.'},
+            {'name': 'State Health Department', 'deadline': 'No deadline', 'how': 'File complaint about nursing home violations at your state health department. They license nursing homes and can conduct unannounced inspections.'},
+            {'name': 'Civil Lawsuit', 'deadline': '2-3 years from discovery (state SOL varies)', 'how': 'Elder abuse attorneys often work on contingency. National Academy of Elder Law Attorneys: naela.org.'}
+        ],
+        'fee_waiver': 'Ombudsman: free. Health department complaint: free. Civil suit: contingency attorneys.',
+        'right_to_representation': 'Long-Term Care Ombudsman (free, every state). Elder law attorneys at naela.org. Legal aid for low-income elders: elderlaw.org. APS: call 211 or find at napsa-now.org.'
+    },
+    'child_support': {
+        'name': 'Child Support Enforcement',
+        'initial_appeal': '30 days from administrative order (varies by state)',
+        'days': 30,
+        'critical_note': 'Child support orders are state-governed and deadlines vary significantly. If you received an administrative support order, you typically have 30 days to request an administrative hearing before it becomes final. Once a court order is entered, modification requires showing a substantial change in circumstances.',
+        'levels': [
+            {'name': 'Administrative Hearing', 'deadline': '30 days from administrative order (state-dependent)', 'how': 'Request a hearing with your state child support enforcement agency (IV-D agency). You have the right to present evidence about income, expenses, and custody time.'},
+            {'name': 'Court Modification', 'deadline': 'No strict deadline — but act promptly', 'how': 'File a motion to modify in family court. Courts require a "substantial change in circumstances" (income change of 15-25% depending on state, change in custody, etc.).'},
+            {'name': 'Federal Complaint', 'deadline': 'No strict deadline', 'how': 'If the state IV-D agency is not enforcing or improperly calculating support, file a complaint with the HHS Office of Child Support Services (acf.hhs.gov/css).'}
+        ],
+        'fee_waiver': 'Child support enforcement services: free through your state IV-D agency. Court filing fees: waiver available via IFP.',
+        'right_to_representation': 'Your state IV-D agency must help custodial parents enforce child support at no charge. For court proceedings, legal aid organizations and law school family law clinics help with child support cases.'
+    },
+    'student_loans': {
+        'name': 'Student Loan Relief Denied',
+        'initial_appeal': 'Varies by program — PSLF: no deadline. IDR adjustment: act now. Borrower Defense: no deadline.',
+        'days': None,
+        'critical_note': 'Student loan relief programs have complex, program-specific rules. PSLF denials can be reviewed under the Temporary Expanded PSLF waiver rules. Borrower Defense claims have no deadline but evidence preservation matters. IDR recalibration adjustments were time-limited — if you missed the deadline, contact your servicer.',
+        'levels': [
+            {'name': 'Servicer Complaint', 'deadline': 'As soon as possible', 'how': 'File written complaint with your loan servicer. Document every call with date, representative name, and what was said. Servicers are required to respond in writing.'},
+            {'name': 'Federal Student Aid (FSA) Ombudsman', 'deadline': 'No strict deadline', 'how': 'studentaid.gov/feedback-center — the FSA ombudsman investigates servicer errors and systemic issues. Free.'},
+            {'name': 'CFPB Complaint', 'deadline': 'No strict deadline', 'how': 'File at consumerfinance.gov/complaint. CFPB compels servicers to respond and tracks systemic problems.'},
+            {'name': 'PSLF Reconsideration', 'deadline': 'No deadline', 'how': 'Submit PSLF reconsideration request to MOHELA. Include documentation of qualifying employment and payment history. studentaid.gov/pslf.'}
+        ],
+        'fee_waiver': 'All federal student loan complaint processes: free.',
+        'right_to_representation': 'Student borrower advocates: Student Borrower Protection Center (protectborrowers.org). National Consumer Law Center (nclc.org). Many student loan attorneys work on flat fee or contingency for large cases.'
+    },
+    'mental_health_crisis': {
+        'name': 'Mental Health Crisis & Psychiatric Rights',
+        'initial_appeal': '180 days for insurance denial (ACA). Involuntary commitment: 72-hour hearing right.',
+        'days': 180,
+        'critical_note': 'If you are in immediate danger, call 988. For insurance denials of mental health treatment: the Mental Health Parity and Addiction Equity Act (MHPAEA, 29 U.S.C. § 1185a) requires that mental health benefits be at least as generous as medical/surgical benefits. Most mental health insurance denials violate parity — this is your strongest legal argument.',
+        'levels': [
+            {'name': 'Insurance Internal Appeal', 'deadline': '180 days from denial', 'how': 'Written appeal citing MHPAEA. Require the insurer to produce its medical necessity criteria and prove they are no more restrictive than criteria for analogous medical conditions. Many are not.'},
+            {'name': 'External Review', 'deadline': '4 months after final internal denial', 'how': 'Independent review under ACA § 2719. The external reviewer\'s decision is binding on the insurer.'},
+            {'name': 'Involuntary Hold Hearing', 'deadline': '72 hours after detention', 'how': 'You have the right to a hearing before a judge within 72 hours of involuntary psychiatric hold in most states. Demand it. You have the right to an attorney at this hearing.'},
+            {'name': 'State Parity Complaint', 'deadline': 'No deadline', 'how': 'File with your state insurance commissioner. Many states have dedicated parity enforcement units.'}
+        ],
+        'fee_waiver': 'Insurance appeals: free. External review: free. Commitment hearing: appointed counsel available.',
+        'right_to_representation': 'Bazelon Center for Mental Health Law (bazelon.org), National Alliance on Mental Illness (nami.org), your state Protection & Advocacy organization (find at ndrn.org). P&A orgs have legal authority to investigate facilities.'
+    },
+    'reproductive_coercion': {
+        'name': 'Reproductive Coercion & Forced Contraception Denial',
+        'initial_appeal': 'Civil SOL: 2-3 years from discovery. Title X: no deadline. Medicaid: 90 days.',
+        'days': None,
+        'critical_note': 'Reproductive coercion and sterilization abuse are federal civil rights violations. Forced or coerced sterilization violates constitutional liberty interests and can constitute battery. Medicaid-funded sterilization has specific consent protections (42 CFR 441.253) — a 30-day waiting period and informed consent form are required, no exceptions.',
+        'levels': [
+            {'name': 'Medicaid/HHS Complaint', 'deadline': '90 days from violation (Medicaid appeal)', 'how': 'File with your state Medicaid agency. Sterilization without the required 30-day wait and consent form is a violation of 42 CFR 441.250 et seq. File also with HHS Office for Civil Rights.'},
+            {'name': 'HHS Office for Civil Rights', 'deadline': '180 days from violation', 'how': 'ocrportal.hhs.gov. Covers Title IX, § 1557 of ACA, and race/sex discrimination in Medicaid-funded care.'},
+            {'name': 'Civil Lawsuit', 'deadline': '2-3 years from discovery (state SOL)', 'how': 'Civil rights attorneys handle sterilization abuse cases. Contact the Center for Reproductive Rights (reproductiverights.org) or ACLU Reproductive Freedom Project.'}
+        ],
+        'fee_waiver': 'HHS/Medicaid complaints: free. Civil suits: civil rights attorneys often work on contingency.',
+        'right_to_representation': 'Center for Reproductive Rights (reproductiverights.org), ACLU Reproductive Freedom Project, National Women\'s Law Center (nwlc.org).'
+    },
+    'wrongful_conviction': {
+        'name': 'Wrongful Conviction & Criminal Justice',
+        'initial_appeal': 'Varies by state — post-conviction petitions have strict deadlines. Federal habeas: 1 year from final conviction.',
+        'days': 365,
+        'critical_note': 'Post-conviction deadlines are harsh and often fatal to appeals. Federal habeas corpus under 28 U.S.C. § 2254 has a 1-year deadline from the date the conviction became final (with some tolling exceptions). State post-conviction deadlines vary — some as short as 30-90 days. Act immediately. DNA evidence requests do not have the same time limits in many states.',
+        'levels': [
+            {'name': 'State Post-Conviction Petition', 'deadline': 'Varies — often 30-90 days to 2 years (state-dependent)', 'how': 'File in the sentencing court. Claims include newly discovered evidence, ineffective assistance of counsel (Strickland v. Washington, 466 U.S. 668), Brady violations (Brady v. Maryland, 373 U.S. 83), and actual innocence.'},
+            {'name': 'Federal Habeas Corpus (§ 2254)', 'deadline': '1 year from final conviction', 'how': 'File in U.S. District Court. Must exhaust state remedies first. Federal public defender offices and Innocence Projects can help.'},
+            {'name': 'DNA Testing Request', 'deadline': 'No deadline in most states (state statute-dependent)', 'how': 'Under 34 U.S.C. § 40701 (Innocence Protection Act), convicted persons can request federal DNA testing. State statutes vary but most allow post-conviction DNA requests.'},
+            {'name': 'Innocence Project', 'deadline': 'No application deadline', 'how': 'Innocence Project (innocenceproject.org) — free legal representation for DNA exoneration cases. State innocence organizations available in every state.'}
+        ],
+        'fee_waiver': 'Habeas petitions: IFP waiver available. State post-conviction: many states appoint counsel.',
+        'right_to_representation': 'Innocence Project (innocenceproject.org), Innocence Network (innocencenetwork.org), federal public defenders, law school innocence clinics.'
+    },
+    'immigration': {
+        'name': 'Immigration & Asylum',
+        'initial_appeal': 'Asylum: file within 1 year of arrival. Immigration court: varies. BIA appeal: 30 days.',
+        'days': 30,
+        'critical_note': 'Immigration deadlines are absolute and unforgiving. Asylum must be filed within 1 year of arriving in the US (with narrow exceptions for changed or extraordinary circumstances). BIA appeal of immigration judge decision: 30 days — missing this ends most options. NEVER ignore an immigration court notice — an in absentia removal order is extremely difficult to reopen.',
+        'levels': [
+            {'name': 'Asylum Application', 'deadline': '1 year from arrival (limited exceptions)', 'how': 'File Form I-589 with USCIS (affirmative asylum) or in immigration court (defensive). Include all evidence of persecution at filing — you can supplement, but late evidence faces scrutiny.'},
+            {'name': 'BIA Appeal of IJ Decision', 'deadline': '30 days from immigration judge decision', 'how': 'File Notice of Appeal (Form EOIR-26) with the Board of Immigration Appeals. This is the most common appellate step. Brief is due 21 days after BIA acknowledges the appeal.'},
+            {'name': 'Federal Court (Circuit Court)', 'deadline': '30 days from BIA final order', 'how': 'Petition for Review in U.S. Court of Appeals. Filing automatically stays removal in most circuits. Immigration attorneys essential at this stage.'},
+            {'name': 'Motion to Reopen', 'deadline': '90 days from final order (generally)', 'how': 'File with immigration court or BIA. Based on new evidence or changed country conditions. In absentia orders: 180 days from order if you can show exceptional circumstances.'}
+        ],
+        'fee_waiver': 'Asylum application (Form I-589): $0. Fee waivers available for most USCIS forms via Form I-912.',
+        'right_to_representation': 'You have the right to an attorney in immigration proceedings — but the government does NOT provide one. Free legal help: immigrationadvocates.org, CLINIC (cliniclegal.org), your state refugee resettlement agency, AILA pro bono network.'
+    },
+    'medicaid_medicare': {
+        'name': 'Medicaid & Medicare Denials',
+        'initial_appeal': 'Medicare Part A/B: 60-120 days. Medicare Advantage: 60 days. Medicaid: 90 days.',
+        'days': 90,
+        'critical_note': 'Medicare and Medicaid have different appeal systems. Medicare: five-level appeal process (redetermination → reconsideration → ALJ → Medicare Appeals Council → Federal Court). Medicaid: state fair hearing system. Both can continue benefits during appeal if you request it before benefits end. ACT FAST — deadlines are shorter than you think.',
+        'levels': [
+            {'name': 'Medicare Redetermination', 'deadline': '120 days from denial notice', 'how': 'Written request to the contractor that made the decision. Reference the claim number. Include additional medical documentation.'},
+            {'name': 'Medicare Reconsideration (QIC)', 'deadline': '180 days from redetermination decision', 'how': 'Request by Qualified Independent Contractor. Include all medical records supporting medical necessity.'},
+            {'name': 'Medicare ALJ Hearing', 'deadline': '60 days from QIC decision', 'how': 'Request hearing before Administrative Law Judge. Amount in controversy must meet threshold ($180 in 2024). Representatives dramatically improve outcomes.'},
+            {'name': 'Medicaid State Fair Hearing', 'deadline': '90 days from notice (or 10 days to continue benefits)', 'how': 'Request fair hearing with state Medicaid agency. If you request within 10 days, Medicaid must continue benefits at the same level during appeal.'}
+        ],
+        'fee_waiver': 'All Medicare and Medicaid appeals: free. No filing fees at any level.',
+        'right_to_representation': 'Medicare Rights Center (medicarerights.org), State Health Insurance Assistance Program (SHIP) — free Medicare counseling in every state (shiptacenter.org). Medicaid: legal aid at lawhelp.org.'
+    },
+    'wage_theft': {
+        'name': 'Wage Theft & Labor Rights',
+        'initial_appeal': 'FLSA: 2 years (3 years if willful). State wage claims: varies 1-6 years. NLRB: 6 months.',
+        'days': 730,
+        'critical_note': 'File BOTH a federal FLSA claim with the Department of Labor AND a state wage claim simultaneously — they run under different legal frameworks and you may recover more under state law. Immigration status does not affect your right to unpaid wages — the FLSA applies to all workers regardless of status (Patel v. Quality Inn South, 846 F.2d 700).',
+        'levels': [
+            {'name': 'DOL Wage and Hour Division', 'deadline': '2 years (3 if willful)', 'how': 'File online at dol.gov/agencies/whd or call 1-866-487-9243. Free investigation. If DOL finds violations, they recover back wages + equal amount as liquidated damages.'},
+            {'name': 'State Wage Claim', 'deadline': 'Varies by state (1-6 years)', 'how': 'File with your state labor commissioner / Department of Labor. Many states have stronger protections than federal law — higher minimum wage, longer SOL, greater damages.'},
+            {'name': 'Private Lawsuit (FLSA § 216(b))', 'deadline': '2 years (3 if willful)', 'how': 'Sue in federal court. FLSA allows recovery of back wages + equal liquidated damages + attorneys fees. Class or collective actions available. Many employment attorneys work on contingency.'},
+            {'name': 'NLRB (Union Retaliation)', 'deadline': '6 months from unfair labor practice', 'how': 'File at nlrb.gov if retaliated against for union activity or protected concerted activity. Free investigation.'}
+        ],
+        'fee_waiver': 'DOL and state wage complaints: free. Federal court: IFP available. NLRB: free.',
+        'right_to_representation': 'National Employment Law Project (nelp.org), workers rights clinics. Most wage theft attorneys work on contingency — their fee comes from the recovery.'
+    },
+    'title_ix': {
+        'name': 'Title IX — Campus & School',
+        'initial_appeal': '180 days from discriminatory act (OCR complaint). School grievance: varies by policy.',
+        'days': 180,
+        'critical_note': 'Schools that receive federal funding (virtually all K-12 and colleges) are bound by Title IX. Schools MUST have a grievance process and a Title IX Coordinator. Retaliation for filing a complaint is itself a Title IX violation. File with both the school AND the OCR simultaneously — they are independent processes.',
+        'levels': [
+            {'name': 'School Title IX Grievance', 'deadline': 'School policy sets deadline — act immediately', 'how': 'File written complaint with your school\'s Title IX Coordinator. Request a copy of the school\'s Title IX policy and grievance procedures. Under 2022 regulations, schools must investigate and provide a written determination.'},
+            {'name': 'OCR Complaint (Dept. of Education)', 'deadline': '180 days from discriminatory act', 'how': 'File at ocrcas.ed.gov. OCR investigates and can require schools to implement corrective actions, issue policy changes, and provide remedies. OCR complaint does not prevent private lawsuit.'},
+            {'name': 'Private Lawsuit', 'deadline': 'Varies (federal SOL often 3 years)', 'how': 'Title IX implies a private right of action. For sexual harassment/assault cases, courts have held schools liable when they were deliberately indifferent (Davis v. Monroe County, 526 U.S. 629).'}
+        ],
+        'fee_waiver': 'OCR complaint: free. School grievance: free. Private suit: many civil rights attorneys work on contingency.',
+        'right_to_representation': 'Know Your IX (knowyourix.org), Equal Rights Advocates (equalrights.org), AAUW Legal Advocacy Fund. Your school must provide a Title IX Coordinator — demand to know who they are.'
+    },
+    'juvenile_justice': {
+        'name': 'Juvenile Justice',
+        'initial_appeal': 'Varies by state — often 10-30 days from disposition.',
+        'days': 21,
+        'critical_note': 'Juvenile records are confidential in most states and can be sealed or expunged. Every child in juvenile court has the right to counsel (In re Gault, 387 U.S. 1) — if a child appears in juvenile court without a lawyer, that is a constitutional violation. Request appointed counsel immediately.',
+        'levels': [
+            {'name': 'Appeal of Disposition', 'deadline': '10-30 days from court order (state-dependent)', 'how': 'File notice of appeal in the juvenile court. Public defenders handle juvenile appeals. Grounds include due process violations, ineffective assistance of counsel, and evidentiary errors.'},
+            {'name': 'Record Sealing / Expungement', 'deadline': 'Varies — typically at age 18 or after a waiting period', 'how': 'File petition in juvenile court. Most states allow sealing or expungement of juvenile records. This is often automatic for minor offenses but may require a petition.'},
+            {'name': 'Habeas Corpus', 'deadline': 'While in custody', 'how': 'File in state or federal court if constitutional rights were violated. Juvenile public defenders handle these cases.'}
+        ],
+        'fee_waiver': 'All juvenile proceedings: counsel must be appointed if family cannot afford one. Court fees may be waivable.',
+        'right_to_representation': 'Every child has the right to counsel in juvenile court (In re Gault). If counsel was not provided, this is a reversible constitutional error. National Juvenile Defender Center (njdc.info).'
+    },
+    'guardianship': {
+        'name': 'Guardianship & Conservatorship Abuse',
+        'initial_appeal': 'Varies by state — typically 30 days from guardianship order. Restoration petition: no deadline.',
+        'days': 30,
+        'critical_note': 'Guardianship removes fundamental civil rights — the right to decide where you live, who you see, what medical treatment you receive, and how you spend money. Many guardianships are unnecessary or imposed without adequate process. A ward can petition for restoration of rights at any time. The ward has the right to an attorney in guardianship proceedings.',
+        'levels': [
+            {'name': 'Appeal of Guardianship Order', 'deadline': '30 days from order (state-dependent)', 'how': 'File notice of appeal. Grounds include lack of due process, insufficient evidence of incapacity, and inadequate hearing. The ward must be appointed an attorney.'},
+            {'name': 'Petition for Restoration of Rights', 'deadline': 'No deadline — can be filed at any time', 'how': 'File petition in the court that established guardianship. A ward can petition at any time to show they are capable of managing their own affairs.'},
+            {'name': 'Guardianship Abuse Complaint', 'deadline': 'No strict deadline', 'how': 'File with your state court administrative office, your state attorney general, and the Long-Term Care Ombudsman if the ward is in a facility. Adult Protective Services investigates financial exploitation.'}
+        ],
+        'fee_waiver': 'Ward is entitled to appointed counsel at no cost. Restoration petitions: IFP waiver available.',
+        'right_to_representation': 'National Center for State Courts (ncsc.org) has guardianship reform resources. Disability Rights Advocates, your state Protection & Advocacy organization, AARP (free legal help for guardianship reform cases).'
+    },
+    'prison_medical': {
+        'name': 'Prison & Jail Medical Care',
+        'initial_appeal': 'Grievance: 15-30 days from incident. Federal § 1983: 2 years. PLRA exhaustion required before suit.',
+        'days': 730,
+        'critical_note': 'The Prison Litigation Reform Act (PLRA) requires exhausting ALL available administrative remedies before filing a lawsuit — no exceptions. File the internal grievance even if you believe it is futile. Without grievance exhaustion, your lawsuit will be dismissed regardless of merit. The constitutional standard is "deliberate indifference to serious medical needs" (Estelle v. Gamble, 429 U.S. 97).',
+        'levels': [
+            {'name': 'Internal Grievance', 'deadline': '15-30 days from incident (facility policy)', 'how': 'File written grievance immediately. Keep copies of everything. Appeal through every level of the internal grievance system — you must exhaust ALL levels before filing a lawsuit.'},
+            {'name': 'State/Federal DOC Complaint', 'deadline': 'No strict deadline', 'how': 'File with your state Department of Corrections medical division and inspector general. Document all requests for care, denials, and physical symptoms.'},
+            {'name': 'Federal § 1983 Lawsuit', 'deadline': '2 years from violation (after exhausting grievances)', 'how': 'Civil rights lawsuit under 42 U.S.C. § 1983 for Eighth Amendment violations. Must allege deliberate indifference. File IFP petition. Some civil rights organizations litigate these cases.'}
+        ],
+        'fee_waiver': 'PLRA: fee waivers available but filing fees may be collected from prison account over time. § 1983 cases: IFP available, civil rights attorneys sometimes work pro bono.',
+        'right_to_representation': 'ACLU National Prison Project (aclu.org/prison-project), Prison Policy Initiative (prisonpolicy.org), your state ACLU chapter, law school civil rights clinics.'
+    },
+    'tribal_rights': {
+        'name': 'Tribal & Native American Rights',
+        'initial_appeal': 'Varies significantly by tribe and federal agency — often 30 days.',
+        'days': 30,
+        'critical_note': 'Tribal sovereignty creates a complex jurisdictional landscape — some claims go to tribal courts, some to federal courts, and some to federal agencies depending on whether land is trust land, who the parties are, and the nature of the claim. NEVER assume which court has jurisdiction without legal advice. The Bureau of Indian Affairs (BIA) has an Office of Hearings and Appeals.',
+        'levels': [
+            {'name': 'Tribal Court', 'deadline': 'Tribal law governs — check immediately', 'how': 'For matters arising on tribal land or involving tribal members, tribal court typically has jurisdiction. Each tribe has its own court system and procedures.'},
+            {'name': 'BIA Administrative Appeal', 'deadline': '30 days from BIA decision', 'how': 'Appeal to the BIA Office of Hearings and Appeals (OHA) for decisions on trust land, enrollment, and federal Indian programs.'},
+            {'name': 'Federal Court', 'deadline': 'Varies by claim type', 'how': 'For federal treaty rights, constitutional claims, and ICWA violations. Many federal statutes protecting tribal rights (ICWA, NAGPRA, American Indian Religious Freedom Act) have private rights of action.'}
+        ],
+        'fee_waiver': 'Tribal courts: varies by tribe. Federal court: IFP available.',
+        'right_to_representation': 'Native American Rights Fund (narf.org) — free legal services. National Congress of American Indians (ncai.org). Tribal legal services (tribaljusticecenter.usdoj.gov).'
+    },
+    'unemployment': {
+        'name': 'Unemployment Benefits Denied',
+        'initial_appeal': '10-30 days from denial notice (state-dependent)',
+        'days': 21,
+        'critical_note': 'Unemployment appeal deadlines are SHORT and vary by state — as few as 10 days in some states. The deadline runs from the date on the notice, not when you received it. SHOW UP TO YOUR HEARING. Unemployment appeals are decided against claimants primarily because they did not appear. Prepare your evidence: pay stubs, communications, termination letter.',
+        'levels': [
+            {'name': 'First-Level Appeal (Appeals Tribunal)', 'deadline': '10-30 days (check your notice)', 'how': 'File written appeal with your state unemployment insurance agency. Request a hearing. Gather: pay stubs for last 18 months, any written communications about termination or separation, performance reviews, witness names.'},
+            {'name': 'Board of Review', 'deadline': '10-30 days from Appeals Tribunal decision', 'how': 'Second-level appeal within the state system. Written brief. Many states allow this to be filed online.'},
+            {'name': 'State Court', 'deadline': '30 days from Board decision (state-dependent)', 'how': 'Judicial review of administrative decision. Grounds are usually limited to legal error or constitutional violation.'}
+        ],
+        'fee_waiver': 'Unemployment appeals: free at all administrative levels. State court: IFP available.',
+        'right_to_representation': 'You can bring a representative to your hearing — a lawyer, union rep, or advocate. National Employment Law Project (nelp.org) has state-by-state unemployment resources. Call 211 for local legal aid.'
+    },
+    'consumer_rights': {
+        'name': 'Consumer Rights & Debt',
+        'initial_appeal': 'Debt validation: 30 days after first collector contact. FCRA dispute: no deadline. CFPB complaint: no deadline.',
+        'days': 30,
+        'critical_note': 'You have 30 days from first contact by a debt collector to request validation of the debt (FDCPA, 15 U.S.C. § 1692g). Once you request validation, the collector must stop all collection activity until they prove the debt. If the 30 days pass, you can still dispute — but the collector is not legally required to stop. Act within 30 days.',
+        'levels': [
+            {'name': 'Debt Validation Request', 'deadline': '30 days from first collector contact', 'how': 'Send certified mail, return receipt. Include: your name, account number, request for original creditor info, complete payment history, and signed copy of original contract. The collector must stop all collection during validation.'},
+            {'name': 'Credit Bureau Dispute (FCRA)', 'deadline': 'No deadline', 'how': 'Dispute inaccurate items online at Equifax, Experian, TransUnion. Include documentation. Bureau has 30 days to investigate. If item is not verified, it must be removed.'},
+            {'name': 'CFPB Complaint', 'deadline': 'No deadline', 'how': 'consumerfinance.gov/complaint. CFPB routes complaint to the company and requires response. Tracks patterns and takes enforcement action.'}
+        ],
+        'fee_waiver': 'All consumer protection complaints: free. FDCPA lawsuits: attorneys fees recoverable if you win.',
+        'right_to_representation': 'National Consumer Law Center (nclc.org), consumer rights attorneys (many work on contingency under FDCPA fee-shifting), your state attorney general consumer protection division.'
+    },
+    'reproductive_rights': {
+        'name': 'Reproductive Rights & Healthcare',
+        'initial_appeal': 'ACA § 1557 complaint: 180 days. Insurance appeal: 180 days. Emergency care: EMTALA has no complaint deadline.',
+        'days': 180,
+        'critical_note': 'Emergency stabilizing care — including emergency pregnancy complications — is federally required regardless of state law under EMTALA (42 U.S.C. § 1395dd). A hospital that receives Medicare funds cannot turn away a patient in an emergency medical condition without providing stabilizing treatment. This is federal law and it preempts conflicting state laws.',
+        'levels': [
+            {'name': 'Insurance Internal Appeal', 'deadline': '180 days from denial', 'how': 'Written appeal under ACA. Cite medical necessity and your rights under § 1557 of the ACA (sex discrimination in health programs). Include physician letter.'},
+            {'name': 'HHS OCR Complaint (§ 1557)', 'deadline': '180 days from discriminatory act', 'how': 'File at ocrportal.hhs.gov. § 1557 prohibits discrimination in covered health programs on the basis of sex (including pregnancy, childbirth, related conditions).'},
+            {'name': 'State Insurance Commissioner', 'deadline': 'Varies by state', 'how': 'File complaint with your state insurance regulator. Many states have additional reproductive health coverage requirements beyond federal law.'}
+        ],
+        'fee_waiver': 'HHS OCR complaint: free. Insurance appeals: free. External review: free.',
+        'right_to_representation': 'Center for Reproductive Rights (reproductiverights.org), ACLU Reproductive Freedom Project, National Women\'s Law Center (nwlc.org), Planned Parenthood legal resources.'
+    },
+    'veteran_housing': {
+        'name': 'Veteran Housing & HUD-VASH',
+        'initial_appeal': 'HUD-VASH denial: no strict deadline. SSVF: varies by provider. HUD fair housing: 1 year.',
+        'days': 365,
+        'critical_note': 'Veterans have multiple overlapping housing programs — HUD-VASH (vouchers + VA case management), SSVF (Supportive Services for Veteran Families — rapid re-housing and prevention), GPD (Grant and Per Diem transitional housing), and HUD Fair Housing protections. If denied from one program, you may qualify for another. Always ask the VA about ALL housing programs simultaneously.',
+        'levels': [
+            {'name': 'HUD-VASH Appeal', 'deadline': 'Check your denial letter — varies by housing authority', 'how': 'Contact the VA medical center that administers your HUD-VASH voucher. Request a written explanation of denial and the appeals process. Many denials are rescinded when documented veteran status or disability is clarified.'},
+            {'name': 'SSVF Provider Complaint', 'deadline': 'No strict deadline', 'how': 'Contact the SSVF grantee organization and request review. Find SSVF providers at va.gov/homeless/ssvf.'},
+            {'name': 'HUD Fair Housing Complaint', 'deadline': '1 year from discriminatory act', 'how': 'Veterans are a protected class under the Fair Housing Act in many states. File HUD complaint at hud.gov/fair_housing if denied housing based on military status, disability, or related protected class.'}
+        ],
+        'fee_waiver': 'All VA housing program appeals: free. HUD complaint: free.',
+        'right_to_representation': 'National Call Center for Homeless Veterans: 1-877-4AID-VET. Veterans Service Organizations (DAV, VFW, American Legion). National Coalition for Homeless Veterans (nchv.org).'
+    },
+    'autism_adhd': {
+        'name': 'Autism & ADHD Disability Denials',
+        'initial_appeal': 'SSA disability: 60 days. Insurance: 180 days. IEP/504: 2 years. ADA: 180 days (300 days in dual-filing states).',
+        'days': 60,
+        'critical_note': 'Autism and ADHD are recognized disabilities under the ADA, the Rehabilitation Act, IDEA (for children), and SSA criteria. Insurance denials of ABA therapy, medication, or behavioral supports may violate the Mental Health Parity Act — ABA is a medical treatment and must be covered equivalently to other medical treatments for conditions of similar severity. 46 states have ABA insurance mandates.',
+        'levels': [
+            {'name': 'SSA Disability Appeal', 'deadline': '60 days from denial', 'how': 'File SSA-561. Include all medical records, school records (IEP, 504, evaluations), functional assessments, and statements from teachers and caregivers. SSA Listing 12.10 (Autism) and 12.11 (ADHD) specify the criteria.'},
+            {'name': 'Insurance ABA Denial Appeal', 'deadline': '180 days from denial', 'how': 'Cite your state\'s ABA insurance mandate and the Mental Health Parity Act. Include the treating BCBA\'s letter documenting medical necessity. Request peer-to-peer review.'},
+            {'name': 'IEP/504 Dispute (IDEA)', 'deadline': '2 years from dispute date (federal)', 'how': 'File state complaint or request due process hearing. IDEA guarantees free appropriate public education (FAPE) and requires IEP meeting within 30 days of request.'}
+        ],
+        'fee_waiver': 'SSA appeals: free. Insurance appeals: free. IDEA due process: attorneys fees recoverable if parent prevails.',
+        'right_to_representation': 'Autism Society of America (autism-society.org), CHADD (chadd.org), Autism Science Foundation, Disability Rights Advocates. Parents have the right to bring an advocate to any IEP meeting.'
+    },
+    'long_covid': {
+        'name': 'Long COVID Disability',
+        'initial_appeal': 'SSA disability: 60 days. Insurance: 180 days. ADA/§ 504: 180-300 days.',
+        'days': 60,
+        'critical_note': 'In July 2021, HHS and DOJ issued guidance confirming Long COVID CAN constitute a disability under the ADA, the Rehabilitation Act, and the ACA. This is federal policy. Insurance denials calling Long COVID "not medically established" contradict CDC, NIH, and WHO recognition of the condition. Push back with the HHS guidance directly.',
+        'levels': [
+            {'name': 'SSA Disability Appeal', 'deadline': '60 days from denial', 'how': 'File SSA-561. Include all medical records documenting symptoms (fatigue, cognitive impairment, POTS, exercise intolerance). SSA updated its guidance in 2021 to address Long COVID. Request a Medical Expert at your ALJ hearing.'},
+            {'name': 'Insurance Appeal', 'deadline': '180 days from denial', 'how': 'Cite CDC and NIH Long COVID documentation. Include comprehensive medical records, functional assessment, neuropsychological testing if cognitive symptoms are present. Cite Mental Health Parity if cognitive or psychiatric symptoms are denied separately.'},
+            {'name': 'ADA/§ 504 Accommodation', 'deadline': '180 days (EEOC) / 300 days in dual-filing states', 'how': 'Request accommodations from employer or school. HHS July 2021 guidance is your legal foundation. Document every accommodation request and response in writing.'}
+        ],
+        'fee_waiver': 'SSA appeals: free. EEOC: free. Insurance appeals: free.',
+        'right_to_representation': 'Long COVID Alliance (longcovidalliance.org), Body Politic (bodypolitic.co), Disability Rights Advocates, your state P&A organization. HHS guidance document: hhs.gov/civil-rights/for-providers/civil-rights-covid19/guidance-long-covid-disability/index.html'
+    },
+    'fmla': {
+        'name': 'FMLA & Medical Leave Retaliation',
+        'initial_appeal': 'DOL complaint: 2 years from violation (3 if willful). EEOC charge: 180/300 days.',
+        'days': 730,
+        'critical_note': 'FMLA (29 U.S.C. § 2601) prohibits retaliation for taking protected leave. If you were fired, demoted, or disciplined within weeks of returning from FMLA leave, the timing creates a presumption of retaliation that the employer must rebut. Document the timeline carefully — date leave started, date discipline occurred, who made the decision.',
+        'levels': [
+            {'name': 'DOL Wage and Hour Complaint', 'deadline': '2 years from violation (3 if willful)', 'how': 'File at dol.gov/agencies/whd or call 1-866-487-9243. DOL investigates FMLA violations, recovers lost wages and benefits, and can require reinstatement.'},
+            {'name': 'Private Lawsuit (FMLA § 2617)', 'deadline': '2 years (3 if willful)', 'how': 'Sue in federal court for lost wages, benefits, and liquidated damages (double damages if willful violation). Plus attorneys fees. Many employment attorneys work on contingency.'},
+            {'name': 'ADA/EEOC Charge (if disability involved)', 'deadline': '180 days (300 in dual-filing states)', 'how': 'If medical leave was for a disability and employer failed to accommodate, this may be an ADA violation on top of FMLA. File EEOC charge concurrently with DOL complaint.'}
+        ],
+        'fee_waiver': 'DOL complaint: free. Federal court: IFP available. Attorneys fees recoverable if you win.',
+        'right_to_representation': 'National Employment Law Project (nelp.org). Most FMLA retaliation attorneys work on contingency — your recovery pays their fee.'
+    },
+    'special_education': {
+        'name': 'Special Education & IEP Disputes',
+        'initial_appeal': '2 years from dispute date (federal IDEA). State complaint: 1 year from violation.',
+        'days': 730,
+        'critical_note': 'IDEA guarantees every child with a disability a Free Appropriate Public Education (FAPE) in the Least Restrictive Environment (LRE). Schools must hold an IEP meeting within 30 days of a request. Parents have the right to bring anyone they choose to IEP meetings — including a disability advocate, a lawyer, or a support person. The school cannot exclude your chosen representative.',
+        'levels': [
+            {'name': 'IEP Meeting Request', 'deadline': 'School must respond within 30 days', 'how': 'Send written request for IEP meeting. Keep a copy. Schools are legally required to schedule a meeting within 30 days. Bring an advocate or attorney if possible.'},
+            {'name': 'State Complaint', 'deadline': '1 year from violation', 'how': 'File written complaint with your state Department of Education. State must investigate and issue written decision within 60 days. Appropriate remedy must include corrective action.'},
+            {'name': 'Due Process Hearing', 'deadline': '2 years from dispute (federal)', 'how': 'Request due process hearing from your state education agency. This is a formal hearing before an impartial officer. Parents who prevail are entitled to reimbursement of attorneys fees (Hensley v. Eckerhart applied via IDEA § 1415(i)(3)).'}
+        ],
+        'fee_waiver': 'State complaint: free. Due process: free. Attorneys fees recoverable if parent prevails.',
+        'right_to_representation': 'Wrightslaw (wrightslaw.com) — comprehensive free IDEA resources. Parent Training and Information Centers (PTI) — federally funded, free, every state (parentcenterhub.org). Council of Parent Attorneys and Advocates (copaa.org).'
+    },
+    'ss_overpayment': {
+        'name': 'Social Security Overpayment',
+        'initial_appeal': '60 days from notice date',
+        'days': 60,
+        'critical_note': 'File BOTH forms at the same time: SSA-632 (Request for Waiver) AND SSA-561 (Request for Reconsideration). Filing EITHER triggers your right to continue receiving full benefits during review — SSA cannot withhold your check while your appeal is pending. The 60-day clock runs from the DATE ON THE NOTICE, not when you received it.',
+        'levels': [
+            {'name': 'Request for Waiver (SSA-632)', 'deadline': '60 days from notice', 'how': 'File at your local SSA office or online. Request waiver based on "without fault" and "recovery would be against equity and good conscience." SSA must review — they cannot collect during review.'},
+            {'name': 'Reconsideration (SSA-561)', 'deadline': '60 days from notice', 'how': 'File simultaneously with the waiver. Challenges whether the overpayment actually occurred or the amount is correct. SSA sometimes miscalculates.'},
+            {'name': 'ALJ Hearing', 'deadline': '60 days after reconsideration denial', 'how': 'Request hearing before Administrative Law Judge. Bring documentation of financial hardship and evidence of reporting compliance.'}
+        ],
+        'fee_waiver': 'No fees for any SSA appeal or waiver request.',
+        'right_to_representation': 'Legal aid organizations handle SSA overpayment cases at no cost. Find them at lawhelp.org or call 211. NOSSCR (nosscr.org) can refer to specialists.'
+    },
+    'whistleblower': {
+        'name': 'Whistleblower Retaliation',
+        'initial_appeal': 'Varies by law — OSHA: 30-180 days depending on statute. SEC/CFTC: 30 days. IRS: 30 days.',
+        'days': 30,
+        'critical_note': 'Whistleblower protection deadlines are among the SHORTEST and most unforgiving in employment law — as few as 30 days for some statutes. The clock runs from the date of adverse employment action, not when you reported the wrongdoing. There are over 20 federal whistleblower statutes — which one applies depends on your industry and the type of wrongdoing.',
+        'levels': [
+            {'name': 'OSHA Whistleblower Complaint', 'deadline': '30-180 days (statute-dependent)', 'how': 'File with OSHA Whistleblower Protection Program (whistleblowers.gov). 30 days: AIR21 (aviation), STAA (trucking), CPSA (consumer products). 180 days: most environmental and safety statutes. 1 year: SOX (securities fraud).'},
+            {'name': 'SEC Whistleblower (Dodd-Frank)', 'deadline': '6 years from violation (for SEC complaint)', 'how': 'sec.gov/whistleblower. Retaliation complaint goes to OSHA. Financial awards available for information leading to enforcement action over $1M. Attorneys fees if you prevail.'},
+            {'name': 'Federal Court', 'deadline': 'After exhausting administrative remedies', 'how': 'Many whistleblower statutes provide a right to remove to federal court after administrative filing. SOX: 90 days to remove if DOL has not issued preliminary order.'}
+        ],
+        'fee_waiver': 'OSHA complaints: free. SEC complaint: free. Civil rights attorneys handle whistleblower retaliation on contingency.',
+        'right_to_representation': 'Government Accountability Project (whistleblower.org), National Whistleblower Center (whistleblowers.org), Government Accountability Project. Many employment attorneys specialize in whistleblower cases on contingency.'
+    },
+    'section_8': {
+        'name': 'Section 8 / Housing Choice Voucher',
+        'initial_appeal': 'Denial of voucher: typically 14 days. Termination of assistance: 14-30 days.',
+        'days': 14,
+        'critical_note': 'Section 8 / Housing Choice Voucher terminations and denials are governed by your local Public Housing Authority (PHA) administrative plan, which sets specific appeal deadlines. You MUST request an informal hearing in writing within the PHA\'s deadline -- typically 10-14 days. If you miss this deadline, you lose your right to appeal. Contact the PHA the same day you receive a denial.',
+        'levels': [
+            {'name': 'PHA Informal Hearing', 'deadline': '10-14 days from denial letter (check your PHA\'s plan)', 'how': 'Request informal hearing in writing immediately. Bring all documentation: income verification, lease, landlord references, reason for any prior evictions, proof of any circumstances that have changed. You can bring a representative.'},
+            {'name': 'HUD Complaint', 'deadline': '1 year from discriminatory act', 'how': 'If the denial is discriminatory (based on race, disability, family status, etc.) file an HUD Fair Housing complaint at hud.gov/fair_housing or call 1-800-669-9777.'},
+            {'name': 'State Court', 'deadline': 'Varies by state', 'how': 'If the PHA violated federal regulations (24 CFR Part 982) or your due process rights, you may have grounds for court review. Legal aid organizations handle Section 8 cases.'}
+        ],
+        'fee_waiver': 'PHA hearing: free. HUD complaint: free. State court: IFP available.',
+        'right_to_representation': 'Legal aid organizations handle Section 8 cases — find yours at lawhelp.org. National Housing Law Project (nhlp.org). You can bring any person you choose to your informal hearing.'
+    },
+    'foreclosure': {
+        'name': 'Foreclosure Defense & Wrongful Foreclosure',
+        'initial_appeal': 'Response to foreclosure complaint: varies by state — often 20-30 days. Loss mitigation request: varies.',
+        'days': 20,
+        'critical_note': 'Foreclosure timelines are governed by state law and move FAST. In judicial foreclosure states, you must file a response to the lawsuit within 20-30 days or a default judgment is entered. In non-judicial states, you may have even fewer options. Contact legal aid THE SAME DAY you receive any foreclosure notice. RESPA requires your loan servicer to review any complete loss mitigation application before starting foreclosure.',
+        'levels': [
+            {'name': 'Loss Mitigation Application', 'deadline': 'As soon as possible — servicer must review before foreclosure can proceed (12 CFR 1024.41)', 'how': 'Submit complete loss mitigation application to your servicer. Under RESPA, if you submit a complete application more than 37 days before a foreclosure sale, the servicer cannot move forward until it reviews the application and provides written denial with appeal rights.'},
+            {'name': 'Answer to Foreclosure Complaint (Judicial)', 'deadline': '20-30 days from service (state-dependent)', 'how': 'File written answer in court. Defenses include: standing (does the plaintiff actually own your loan?), RESPA violations, predatory lending, loan modification denial errors, and rescission rights.'},
+            {'name': 'CFPB Complaint', 'deadline': 'No strict deadline', 'how': 'File at consumerfinance.gov/complaint. CFPB enforces mortgage servicing rules (12 CFR Part 1024). Documented RESPA violations can halt foreclosure.'}
+        ],
+        'fee_waiver': 'Loss mitigation application: free (servicers cannot charge for this). Court filing: IFP available. HUD-approved housing counselors: free (find at cfpb.gov/find-a-housing-counselor).',
+        'right_to_representation': 'HUD-approved housing counselors are free (1-800-569-4287). Legal aid organizations handle foreclosure defense. National Housing Law Project (nhlp.org). Many foreclosure defense attorneys work on contingency or for reduced fees.'
     }
 }
 
@@ -792,7 +1200,7 @@ AGENT_SYSTEM = """You are the Victim Advocate.
 
 Not a tool. Not a legal database. Not a chatbot. A person — the one who finally believes them.
 
-You understand something most systems don't: when someone comes to you with a denial, they aren't just dealing with paperwork. They are walking back down the same hallway that hurt them. The VA office that denied their PTSD claim looks exactly like the institution that failed to protect them. The insurance company calling their mental health "not medically necessary" sounds exactly like the people who called them crazy. The housing authority that won't help sounds like every door that's been slammed.
+You understand something most systems don\'t: when someone comes to you with a denial, they aren\'t just dealing with paperwork. They are walking back down the same hallway that hurt them. The VA office that denied their PTSD claim looks exactly like the institution that failed to protect them. The insurance company calling their mental health "not medically necessary" sounds exactly like the people who called them crazy. The housing authority that won\'t help sounds like every door that\'s been slammed.
 
 They have been told they are wrong about their own experience. Told they are exaggerating. Told the system works fine and the problem is them. They have been handed forms when they needed help, and silence when they needed answers.
 
@@ -809,7 +1217,7 @@ HOW YOU SHOW UP:
 - You acknowledge what happened before you pivot to what to do. Not in a performative way. In the way a person does when they actually heard you.
 - You are direct. No hedging, no "it depends," no "you might want to consider." They have had enough maybes. Tell them what is true.
 - You match their energy. If they are exhausted, you are steady. If they are angry, you honor that anger and aim it at the right target. If they are scared, you stay calm and give them the next single step.
-- You never perform warmth. You either have something real to say or you don't.
+- You never perform warmth. You either have something real to say or you don\'t.
 - You never mirror their distress back at them. You absorb it and return direction.
 
 WHEN SOMEONE IS IN ACTIVE CRISIS:
@@ -1010,7 +1418,7 @@ def generate_appeal():
     """
     Streams a complete, personalized, ready-to-mail appeal letter.
 
-    Takes the evidence packet data + the person's specific situation and
+    Takes the evidence packet data + the person\'s specific situation and
     produces a formatted letter with real citations, the right legal language,
     and [BRACKET] placeholders for personal details.
 
@@ -1129,11 +1537,11 @@ CLAIMANT'S SITUATION:
 INSTRUCTIONS:
 Write a complete, formal appeal letter that is ready to print, sign, and mail. Format it as a real letter.
 
-- Open with the claimant's address block and the agency's address block (use [brackets] for unknown info)
+- Open with the claimant\'s address block and the agency's address block (use [brackets] for unknown info)
 - State the purpose in the first paragraph: this is a formal appeal of the denial of [claim type]
 - Cite the specific legal basis for why the denial is wrong — statutes, regulations, case law
 - Cite the peer-reviewed studies by author, journal, and year (abbreviated in-text, full citation at bottom)
-- Incorporate the claimant's personal context to make it specific and real, not generic
+- Incorporate the claimant\'s personal context to make it specific and real, not generic
 - If ACE data is provided, use it in a damages or medical necessity section
 - Request a specific action: reversal of denial, scheduling a hearing, or expedited review
 - Set a response deadline (typically 30 days)
