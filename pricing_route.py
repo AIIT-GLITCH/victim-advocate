@@ -1,0 +1,68 @@
+from flask import Blueprint
+
+pricing_bp = Blueprint("pricing", __name__)
+
+@pricing_bp.route("/pricing")
+def pricing():
+    from app import page
+    h = '<div class="text-center py-4 mb-4" style="background:linear-gradient(135deg,#2C1654,#6C3FA0);color:white;border-radius:12px;">'
+    h += '<h1 class="display-5 fw-bold">Simple, Honest Pricing</h1>'
+    h += '<p class="lead">Free for every victim. Pro tools for those who need more.</p></div>'
+    h += '<div class="row g-4 mb-5">'
+    # FREE
+    h += '<div class="col-md-4"><div class="card h-100 text-center p-4">'
+    h += '<h5 class="text-muted">FREE</h5>'
+    h += '<h2 class="display-4 fw-bold mb-0">$0</h2>'
+    h += '<p class="text-muted">forever</p><hr>'
+    h += '<ul class="list-unstyled text-start">'
+    h += '<li class="mb-2">&#x2705; Rights lookup by state &amp; crime</li>'
+    h += '<li class="mb-2">&#x2705; National resource directory</li>'
+    h += '<li class="mb-2">&#x2705; PDF rights reports</li>'
+    h += '<li class="mb-2">&#x2705; Crisis hotline info</li>'
+    h += '<li class="mb-2 text-muted">&#x274c; Case tracking</li>'
+    h += '<li class="mb-2 text-muted">&#x274c; Document storage</li>'
+    h += '</ul><a href="/rights" class="btn btn-outline-primary btn-lg w-100 mt-auto">Get Started Free</a>'
+    h += '</div></div>'
+    # PRO
+    h += '<div class="col-md-4"><div class="card h-100 text-center p-4 border-primary" style="border-width:2px;">'
+    h += '<span class="badge bg-primary mb-2">MOST POPULAR</span>'
+    h += '<h5 class="text-primary">PRO</h5>'
+    h += '<h2 class="display-4 fw-bold mb-0">$9<small class="fs-4">.99</small></h2>'
+    h += '<p class="text-muted">per month</p><hr>'
+    h += '<ul class="list-unstyled text-start">'
+    h += '<li class="mb-2">&#x2705; Everything in Free</li>'
+    h += '<li class="mb-2">&#x2705; Case event timeline</li>'
+    h += '<li class="mb-2">&#x2705; Secure document upload</li>'
+    h += '<li class="mb-2">&#x2705; Statute of limitations alerts</li>'
+    h += '<li class="mb-2">&#x2705; Printable case summary</li>'
+    h += '<li class="mb-2 text-muted">&#x274c; Multi-client management</li>'
+    h += '</ul><a href="/register" class="btn btn-primary btn-lg w-100 mt-auto">Start Pro Trial</a>'
+    h += '<p class="small text-muted mt-2 mb-0">7-day free trial. Cancel anytime.</p>'
+    h += '</div></div>'
+    # ADVOCATE
+    h += '<div class="col-md-4"><div class="card h-100 text-center p-4">'
+    h += '<h5 class="text-muted">ADVOCATE</h5>'
+    h += '<h2 class="display-4 fw-bold mb-0">$29<small class="fs-4">.99</small></h2>'
+    h += '<p class="text-muted">per month</p><hr>'
+    h += '<ul class="list-unstyled text-start">'
+    h += '<li class="mb-2">&#x2705; Everything in Pro</li>'
+    h += '<li class="mb-2">&#x2705; Multi-client dashboard</li>'
+    h += '<li class="mb-2">&#x2705; Bulk PDF reports</li>'
+    h += '<li class="mb-2">&#x2705; API access</li>'
+    h += '<li class="mb-2">&#x2705; Priority support</li>'
+    h += '<li class="mb-2">&#x2705; Custom branding</li>'
+    h += '</ul><a href="/register" class="btn btn-outline-primary btn-lg w-100 mt-auto">Contact Us</a>'
+    h += '<p class="small text-muted mt-2 mb-0">For victim advocates &amp; legal professionals.</p>'
+    h += '</div></div></div>'
+    # FAQ
+    h += '<div class="card p-4 mb-4"><h3 class="mb-4 text-center">Frequently Asked Questions</h3><div class="row">'
+    h += '<div class="col-md-6 mb-3"><h6>Will I always have free access to rights info?</h6>'
+    h += '<p class="text-muted">Yes. Rights lookup, resources, and crisis info will always be 100% free.</p></div>'
+    h += '<div class="col-md-6 mb-3"><h6>What if I cannot afford Pro?</h6>'
+    h += '<p class="text-muted">Contact us. We offer hardship waivers. No one will be turned away.</p></div>'
+    h += '<div class="col-md-6 mb-3"><h6>Is my data secure?</h6>'
+    h += '<p class="text-muted">Yes. All documents and case data are encrypted.</p></div>'
+    h += '<div class="col-md-6 mb-3"><h6>Can I cancel anytime?</h6>'
+    h += '<p class="text-muted">Yes. No contracts, no fees. Cancel in one click.</p></div>'
+    h += '</div></div>'
+    return page("Pricing", h)

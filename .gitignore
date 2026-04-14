@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+*.db
+*.log
+va.log
+*.bak
+test_*.py
+inject_*.py
+add_*.py
+g1.py
+g2.py
+g3.py
+g4.py
+gen.py
+assemble.py
+lines*.json

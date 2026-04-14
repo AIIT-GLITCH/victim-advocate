@@ -1,0 +1,10 @@
+"""Rights data: Illinois"""
+DATA = [
+("IL","domestic_violence","Order of Protection, no-contact orders. IL Domestic Violence Act is comprehensive. Safe Homes Act workplace protections.","Felony DV: 3yr. Violation of order of protection: 3yr.","Healthcare, school, social service workers.","IL Crime Victims Compensation covers up to $27.5K. Mandatory restitution."),
+("IL","assault","Rights under IL Rights of Crime Victims Act: notification, impact statements, attend proceedings.","Aggravated: 3yr. Simple: 1.5yr.","Healthcare providers report injuries.","Mandatory restitution. IL CVC covers medical, counseling, wages."),
+("IL","theft","Restitution, case notification. Identity theft: file with IL AG, credit freeze rights.","Felony: 3yr. Misdemeanor: 1.5yr.","None.","Full restitution on conviction."),
+("IL","fraud","IL AG Consumer Protection. Consumer Fraud Act allows civil action and attorney fees.","Most: 3yr. Securities: 5yr from discovery.","Financial institutions report elder fraud.","Restitution. Consumer Fraud Act damages."),
+("IL","stalking","No-contact orders, Stalking No Contact Order Act. Enhanced cyberstalking protections.","Stalking: 3yr. Aggravated: 3yr.","None specific.","Restitution for security, relocation, counseling."),
+("IL","sexual_assault","Free forensic exam, advocate, rape shield. Rights under Sexual Assault Survivors Emergency Treatment Act (SASETA).","Criminal sexual assault: no limit (since 2017).","Healthcare and school personnel. All report child sexual abuse.","Full restitution. IL CVC. SASETA covers exam costs."),
+("IL","child_abuse","DCFS investigates. CASA advocates. Abused and Neglected Child Reporting Act mandates broad reporting.","Felony: no limit for sexual abuse. Physical: 3-10yr.","Very broad: doctors, teachers, coaches, daycare, film processors. Failure is misdemeanor.","Full restitution. IL CVC for child victims."),
+]

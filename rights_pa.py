@@ -1,0 +1,10 @@
+"""Rights data: Pennsylvania"""
+DATA = [
+("PA","domestic_violence","Protection From Abuse (PFA) orders, safe housing, victim notification through VINE. PA has strong DV laws under Title 23.","Felony: 2-5yr depending on degree. Misdemeanor: 2yr.","Healthcare providers, school employees, social workers.","PA Victims Compensation Assistance Program (VCAP) up to $35K. Mandatory restitution."),
+("PA","assault","Victim notification via PA SAVIN, impact statements, right to attend proceedings. Crime Victims Act protections.","Aggravated: 5yr. Simple: 2yr.","Healthcare providers report.","Mandatory restitution. PA VCAP covers medical, counseling, wages."),
+("PA","theft","Restitution rights, case notification. ID theft victims can petition for record correction.","Felony: 5yr. Misdemeanor: 2yr.","None.","Full restitution on conviction."),
+("PA","fraud","PA AG Bureau of Consumer Protection. Unfair Trade Practices Act allows private action.","Most: 5yr. Insurance fraud: 3yr from discovery.","Insurance companies report suspected fraud.","Restitution. Civil damages under UTPA."),
+("PA","stalking","PFA orders available for stalking. Enhanced penalties for repeat offenders. GPS monitoring.","Felony: 5yr. Misdemeanor: 2yr.","None specific.","Restitution for security, relocation, counseling."),
+("PA","sexual_assault","Free forensic exam, victim advocate, rape shield law. No requirement to report for exam.","Rape: no limit. IDSI: no limit. Other: 12yr.","Healthcare and school personnel. All adults report child sexual abuse.","Full restitution. PA VCAP covers exam, therapy, wages."),
+("PA","child_abuse","ChildLine reporting system. CPS investigates within 24hrs. CASA advocates available.","Felony: no limit for sexual abuse. Physical abuse: 5yr.","Broad list: doctors, teachers, coaches, clergy, librarians. Failure is criminal.","Full restitution. PA VCAP for child victims."),
+]
