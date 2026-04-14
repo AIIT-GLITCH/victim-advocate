@@ -11,5 +11,5 @@ RESOURCES = [
     ("Legal Services Corporation", "", "https://www.lsc.gov/find-legal-aid", "Find free legal help near you", "legal_aid"),
 ]
 
-STATES = {"CA":"California","TX":"Texas","FL":"Florida","NY":"New York","PA":"Pennsylvania","IL":"Illinois","OH":"Ohio","GA":"Georgia","NC":"North Carolina","MI":"Michigan"}
+STATES = {"CA":"California","TX":"Texas","FL":"Florida","NY":"New York","PA":"Pennsylvania","IL":"Illinois","OH":"Ohio","GA":"Georgia","NC":"North Carolina","MI":"Michigan","OK":"Oklahoma"}
 CRIMES = {"domestic_violence":"Domestic Violence","assault":"Assault","theft":"Theft","fraud":"Fraud","stalking":"Stalking","sexual_assault":"Sexual Assault","child_abuse":"Child Abuse"}

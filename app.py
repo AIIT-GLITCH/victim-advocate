@@ -14,7 +14,7 @@ def load_rights():
     rights = {}
     mods = {"FL":"rights_fl","GA":"rights_ga","IL":"rights_il",
             "MI":"rights_mi","NC":"rights_nc","NY":"rights_ny",
-            "OH":"rights_oh","PA":"rights_pa","TX":"rights_tx"}
+            "OH":"rights_oh","PA":"rights_pa","TX":"rights_tx","OK":"rights_ok"}
     for code, mod in mods.items():
         try:
             m = importlib.import_module(mod)
