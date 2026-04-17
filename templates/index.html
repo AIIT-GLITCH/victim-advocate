@@ -750,7 +750,7 @@
             border-radius: 8px;
             color: var(--text);
             padding: 0.6rem 0.9rem;
-            font-size: 0.9rem;
+            font-size: 16px; /* min 16px prevents iOS auto-zoom */
             outline: none;
             resize: none;
             max-height: 100px;
@@ -799,8 +799,16 @@
             color: var(--text);
         }
         @media (max-width: 480px) {
-            .chat-panel { width: calc(100vw - 2rem); right: 1rem; }
+            .chat-panel {
+                width: 100vw;
+                right: 0;
+                left: 0;
+                bottom: 0;
+                border-radius: 16px 16px 0 0;
+                max-height: 85vh;
+            }
             .chat-fab { bottom: 1rem; right: 1rem; }
+            .chat-send { min-width: 64px; font-size: 15px; padding: 0.65rem 0.9rem; }
         }
 
         /* Responsive */
@@ -2184,8 +2192,9 @@ function sendMessage(skipRapeCheck) {
     }).catch(err => {
         if (!err) return; // null = handled (crisis email form shown)
         const msg = (err && err.message) || '';
-        // Rate limit — humane message, never "evidence packets"
-        if (msg.includes('been talking') || msg.includes('immediate danger') || msg.includes('come back')) {
+        // Always show server message directly — never prepend "Sorry" or other wrapper text
+        // If message looks like a server error string (not "Agent unavailable"), show it
+        if (msg && msg !== 'Agent unavailable') {
             agentMsg.textContent = msg;
         } else {
             agentMsg.textContent = 'Something went wrong on my end — I\'m sorry. If you\'re in danger right now, call 911. For crisis support: 988 (call or text). Try sending your message again in a moment.';

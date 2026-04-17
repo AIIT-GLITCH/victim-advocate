@@ -1635,7 +1635,7 @@ def generate_appeal():
 
     ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
     if not _check_rate_limit(ip):
-        return jsonify({'error': 'Rate limit exceeded. Try again in an hour.'}), 429
+        return jsonify({'error': 'You\'ve been talking for a while. Take a breath — come back in an hour. If you\'re in danger right now: 911. Crisis support: 988.'}), 429
 
     category_id = data.get('category_id', '').strip()
     denial_index = data.get('denial_index')
