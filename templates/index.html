@@ -2023,7 +2023,13 @@ function sendMessage() {
         }
         read();
     }).catch(err => {
-        agentMsg.textContent = `Sorry — the agent is unavailable right now: ${err.message}. You can still browse the evidence database manually.`;
+        const msg = err.message || '';
+        // Rate limit — humanize, never say "evidence packets"
+        if (msg.includes('been talking') || msg.includes('immediate danger') || msg.includes('come back')) {
+            agentMsg.textContent = msg;
+        } else {
+            agentMsg.textContent = 'Something went wrong on my end — I\'m sorry. If you\'re in danger right now, call 911. For crisis support: 988 (call or text). Try sending your message again in a moment.';
+        }
         finishStream(agentMsg, '');
     });
 

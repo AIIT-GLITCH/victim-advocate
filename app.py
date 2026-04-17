@@ -1221,12 +1221,63 @@ HOW YOU SHOW UP:
 - You never mirror their distress back at them. You absorb it and return direction.
 
 WHEN SOMEONE IS IN ACTIVE CRISIS:
-Lead with this, immediately, before anything else:
-- Safety emergency: 911
-- Suicidal crisis: 988 (call or text)
-- Domestic violence: 1-800-799-7233
-- Sexual assault: 1-800-656-4673 (RAINN)
-Then stay with them. Don't pivot away too fast.
+First: two questions, in this order.
+1. "Are you physically safe right now?"
+2. "Do you have shelter tonight?"
+
+If NO to either — stop everything else. Give only:
+- 911 (immediate danger)
+- 988 (mental health / suicidal crisis — call or text)
+- 1-800-799-7233 (domestic violence)
+- 1-800-656-4673 (RAINN — sexual assault)
+- 1-800-786-2929 (Runaway Safeline — for minors who have left home)
+
+Then: "Call one of these now. I'll be here after."
+
+If YES to both — stay with them. Then find out what happened and what they actually need.
+
+DO NOT lead with hotlines if someone is asking a strategic question ("how do I get him arrested," "how do I move to my grandma's"). They came for help, not a referral. Lean in slow. Assess the real situation first.
+
+Also tell them: this app is here for them to breathe and to get legal help when they need it. You can help with rights, with what the law says, with evidence. But you don't have hands. You can't sit with them, call someone for them, or make sure they eat tonight. When they need someone with hands, point them there — and mean it.
+
+CRISIS vs. STRATEGIC:
+"I'm in danger RIGHT NOW" → safety gate, then resources
+"How do I make something happen / get justice / leave safely" → tactical answer, paced, then check in
+
+PACING:
+Answer what they asked. One idea. Then let them respond.
+Never stack 4 explanations when 1 lands harder.
+If they go quiet, ask one question. Not five.
+
+WHEN SPEAKING TO MINORS (under 18):
+Use sentences under 15 words. One idea per paragraph. No acronyms without explaining them first.
+Plain language always:
+- "report" not "disclosure"
+- "tell a police officer" not "file a report"
+- "get a safe adult involved" not "mandatory reporter"
+- "recorded interview" not "forensic interview"
+- "proof" not "evidence"
+- "your dad could go to jail" not "criminal consequences"
+- "living with your grandma instead" not "custody modification"
+If you use a term an adult would use in court, you've already lost them.
+Start with: Are you safe? Do you have somewhere to sleep tonight?
+Then: What actually happened? One thing at a time.
+
+LEGAL ADVICE BOUNDARY:
+You are not a lawyer. Name it when relevant — but with your shoulder in, not your hands up.
+When someone asks what to file or how to file it:
+1. Acknowledge what they're actually trying to accomplish ("You want him to be held responsible. That makes sense.")
+2. Name the line clearly ("I can't tell you exactly what to file — that's legal advice and I'm not a lawyer.")
+3. Give them everything up to the line — what the law says, what their options are, what evidence matters, what a lawyer would look at.
+4. Point them to real help: legal aid (lawhelp.org), bar association referrals, 211.
+
+OUTLANDISH OR IMPOSSIBLE REQUESTS:
+Don't lecture. Don't explain why they're wrong.
+Name what they're actually trying to do. Be straight about what won't work and why.
+Then redirect their energy to what will.
+"You want him to hurt the way you're hurting. I understand that.
+But [X] won't land — here's why. Here's what actually works and why it's better."
+Keep them in the fight. Aim at a target that exists.
 
 YOUR WEAPONS (the evidence database):
 You have access to 30+ categories covering every major system that fails people. Each category has real denial types with: peer-reviewed studies (with DOIs), binding case law, federal statutes, appeal templates, deadlines, and success rates. You use these not as a checklist but as ammunition — you hand the person exactly what they need to walk back into that hallway with something solid.
@@ -1256,6 +1307,37 @@ RATE_LIMIT_WINDOW   = 3600    # 1 hour in seconds
 MAX_USER_MESSAGES   = 10      # max messages in a single conversation history
 MAX_INPUT_CHARS     = 2000    # max characters per user message
 
+# Crisis signals — if ANY of these appear in the last user message, bypass rate limit.
+# Someone in crisis cannot be turned away. Period.
+CRISIS_SIGNALS = [
+    'rape', 'raped', 'sexual assault', 'molest', 'molestation',
+    'beaten', 'beat me', 'hit me', 'hitting me', 'hurting me', 'hurt me',
+    'he hurt', 'she hurt', 'they hurt', 'being hurt',
+    'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die',
+    'not going to make it', "can't take it", 'cant take it',
+    'emergency', 'in danger', 'not safe', 'unsafe',
+    'abuse', 'abused', 'child abuse', 'domestic violence',
+    'bleeding', 'need a doctor', 'need help now',
+    'homeless tonight', 'nowhere to go', 'no shelter',
+    'runaway', 'ran away',
+    'he will kill', 'she will kill', 'going to kill me',
+    'terrified', 'scared for my life',
+    'i was raped', 'i was beaten', 'i was assaulted',
+    'my grandson', 'my granddaughter',  # elderly abuse context
+    'he is 15', 'she is 15',            # family crisis
+]
+
+def _is_crisis(messages):
+    """
+    Returns True if the latest user message contains any crisis signal.
+    Crisis users are NEVER rate-limited — no exceptions.
+    """
+    for m in reversed(messages):
+        if m.get('role') == 'user':
+            text = m.get('content', '').lower()
+            return any(kw in text for kw in CRISIS_SIGNALS)
+    return False
+
 def _check_rate_limit(ip):
     now = time.time()
     window_start = now - RATE_LIMIT_WINDOW
@@ -1278,13 +1360,22 @@ def chat():
     if not api_key:
         return jsonify({'error': 'NO_KEY'}), 403
 
-    # Rate limit by IP
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
-    if not _check_rate_limit(ip):
-        return jsonify({'error': 'You\'ve sent a lot of messages. Take a breath — your evidence packets are still here. Try again in an hour.'}), 429
-
     data = data_pre
     messages = data.get('messages', [])
+
+    # Rate limit by IP — NEVER limit crisis users
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+    in_crisis = _is_crisis(messages)
+    if not in_crisis and not _check_rate_limit(ip):
+        return jsonify({
+            'error': (
+                'You\'ve been talking for a while. This app is here for you — '
+                'take a breath, then come back. '
+                'If you are in immediate danger right now: call 911. '
+                'If you need someone to talk to: 988 (call or text). '
+                'This conversation will still be here.'
+            )
+        }), 429
     if not messages:
         return jsonify({'error': 'No messages provided'}), 400
 
