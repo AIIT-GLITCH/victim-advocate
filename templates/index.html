@@ -1962,18 +1962,163 @@ function sendStarter(text) {
     sendMessage();
 }
 
-function sendMessage() {
+// Crisis cover — set to true when user asks us to use the server key
+let crisisCoverActive = false;
+
+// Rape/assault signals that trigger the financial assist prompt
+const RAPE_SIGNALS = ['rape', 'raped', 'sexual assault', 'molested', 'molestation', 'sexually assaulted'];
+
+function _containsRapeSignal(text) {
+    const t = text.toLowerCase();
+    return RAPE_SIGNALS.some(s => t.includes(s));
+}
+
+function showCrisisAssistPanel(pendingText) {
+    // Show a gentle panel asking if they need us to cover the API cost
+    const panel = document.createElement('div');
+    panel.id = 'crisisAssistPanel';
+    panel.style.cssText = `
+        background: rgba(30,10,10,0.97);
+        border: 1px solid rgba(248,113,113,0.3);
+        border-left: 3px solid #f87171;
+        border-radius: 8px;
+        padding: 20px 22px;
+        margin: 12px 0;
+        font-size: 14px;
+        line-height: 1.7;
+    `;
+    panel.innerHTML = `
+        <div style="color:#f8a4a4; font-weight:700; margin-bottom:10px;">
+            We want to make sure you can finish this conversation.
+        </div>
+        <div style="color:#aaa; margin-bottom:16px;">
+            Talking costs API credits. Do you have access to an Anthropic API key,
+            or do you need us to cover it?
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button onclick="crisisContinueWithOwnKey()" style="
+                background:transparent; border:1px solid #555; color:#ccc;
+                padding:9px 18px; border-radius:6px; cursor:pointer; font-size:13px;">
+                I have a key
+            </button>
+            <button onclick="crisisCoverMe('${pendingText.replace(/'/g,"\\'")}', this.closest('#crisisAssistPanel'))" style="
+                background:#f87171; border:none; color:#000;
+                padding:9px 20px; border-radius:6px; cursor:pointer;
+                font-weight:700; font-size:13px;">
+                Cover me — use yours
+            </button>
+        </div>
+    `;
+    const msgs = document.getElementById('chatMessages');
+    msgs.appendChild(panel);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function crisisContinueWithOwnKey() {
+    const panel = document.getElementById('crisisAssistPanel');
+    if (panel) panel.remove();
+    if (!userApiKey) showKeySetup();
+}
+
+function crisisCoverMe(pendingText, panel) {
+    if (panel) panel.remove();
+    crisisCoverActive = true;
+    // Re-trigger send with the pending text using server key
+    document.getElementById('chatInput').value = pendingText;
+    sendMessage(true); // skipRapeCheck=true so we don't loop
+}
+
+function showCrisisEmailForm(agentMsg) {
+    // Called when server key fails — show email form + immediate phone number
+    agentMsg.classList.remove('streaming');
+    agentMsg.innerHTML = `
+        <div style="color:#f8a4a4; font-weight:700; margin-bottom:10px;">
+            We ran into a limit on our end. We're sorry.
+        </div>
+        <div style="color:#aaa; font-size:13px; line-height:1.7; margin-bottom:16px;">
+            Leave your email and Rhet Wike (AIIT-Threshold Founder) will follow up personally.
+            He'll add $10 to keep this conversation going.
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+            <input id="crisisEmail" type="email" placeholder="your@email.com" style="
+                flex:1; min-width:200px; background:rgba(255,255,255,0.05);
+                border:1px solid rgba(248,113,113,0.3); border-radius:6px;
+                color:#fff; padding:9px 14px; font-size:13px; outline:none;">
+            <button onclick="submitCrisisEmail()" style="
+                background:#f87171; border:none; color:#000;
+                padding:9px 18px; border-radius:6px; cursor:pointer;
+                font-weight:700; font-size:13px; white-space:nowrap;">
+                Send
+            </button>
+        </div>
+        <div id="crisisEmailResult" style="font-size:13px; color:#aaa;"></div>
+    `;
+    chatStreaming = false;
+    document.getElementById('chatSend').disabled = false;
+}
+
+async function submitCrisisEmail() {
+    const email = document.getElementById('crisisEmail').value.trim();
+    const result = document.getElementById('crisisEmailResult');
+    if (!email || !email.includes('@')) {
+        result.textContent = 'Please enter a valid email address.';
+        result.style.color = '#f87171';
+        return;
+    }
+    result.textContent = 'Sending...';
+    result.style.color = '#aaa';
+    try {
+        const resp = await fetch('/api/crisis-contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            document.getElementById('crisisEmail').style.display = 'none';
+            document.querySelector('[onclick="submitCrisisEmail()"]').style.display = 'none';
+            result.style.color = '#4ade80';
+            result.innerHTML = `
+                Got it. You'll hear from us soon.<br><br>
+                <strong style="color:#fff; font-size:15px;">📞 ${data.phone}</strong><br>
+                <span style="color:#aaa;">${data.name} · ${data.title}</span><br>
+                <span style="color:#888; font-size:12px; margin-top:4px; display:block;">
+                    Call or text. Ask for an API key for Victim Advocate. He'll add $10.
+                </span>
+            `;
+        } else {
+            result.textContent = data.error || 'Something went wrong. Try again.';
+            result.style.color = '#f87171';
+        }
+    } catch(e) {
+        result.style.color = '#f87171';
+        result.textContent = 'Could not reach server. You can also call directly: 918-636-9383';
+    }
+}
+
+function sendMessage(skipRapeCheck) {
     if (chatStreaming) return;
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
 
+    // Intercept for rape/assault signals — ask if they need cost coverage
+    if (!skipRapeCheck && !crisisCoverActive && !userApiKey && _containsRapeSignal(text)) {
+        input.value = '';
+        chatHistory.push({ role: 'user', content: text });
+        appendMessage('user', text);
+        showCrisisAssistPanel(text);
+        return;
+    }
+
     input.value = '';
     document.getElementById('starterWrap').style.display = 'none';
 
-    // Add user message
-    chatHistory.push({ role: 'user', content: text });
-    appendMessage('user', text);
+    // Add user message — skip if skipRapeCheck (already added by crisis intercept path)
+    if (!skipRapeCheck) {
+        chatHistory.push({ role: 'user', content: text });
+        appendMessage('user', text);
+    }
 
     // Stream agent response
     chatStreaming = true;
@@ -1987,13 +2132,27 @@ function sendMessage() {
     if (currentCategory) context.category = currentCategory;
     if (currentDenialIndex !== null) context.denial_index = currentDenialIndex;
 
+    const payload = { messages: chatHistory, context };
+    if (crisisCoverActive) {
+        payload.crisis_cover = true;  // use server key
+    } else if (userApiKey) {
+        payload.api_key = userApiKey;
+    }
+
     fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatHistory, context, api_key: userApiKey })
+        body: JSON.stringify(payload)
     }).then(res => {
         if (!res.ok) {
-            return res.json().then(e => { throw new Error(e.error || 'Agent unavailable'); });
+            return res.json().then(e => {
+                if (e.error === 'NO_KEY' && e.crisis) {
+                    // Server key not configured — show email form
+                    showCrisisEmailForm(agentMsg);
+                    throw null; // suppress catch error display
+                }
+                throw new Error(e.error || 'Agent unavailable');
+            });
         }
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -2023,8 +2182,9 @@ function sendMessage() {
         }
         read();
     }).catch(err => {
-        const msg = err.message || '';
-        // Rate limit — humanize, never say "evidence packets"
+        if (!err) return; // null = handled (crisis email form shown)
+        const msg = (err && err.message) || '';
+        // Rate limit — humane message, never "evidence packets"
         if (msg.includes('been talking') || msg.includes('immediate danger') || msg.includes('come back')) {
             agentMsg.textContent = msg;
         } else {

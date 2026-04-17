@@ -1348,6 +1348,97 @@ def _check_rate_limit(ip):
     return True
 
 
+CRISIS_CONTACT_PATH = os.path.join(os.path.dirname(__file__), 'data', 'crisis_contacts.jsonl')
+FOUNDER_PHONE = '918-636-9383'
+FOUNDER_NAME  = 'Rhet Wike'
+FOUNDER_TITLE = 'AIIT-Threshold Founder'
+NOTIFY_EMAIL  = 'reliablerestaurantrepair@gmail.com'
+
+
+def _send_crisis_emails(to_email):
+    """
+    Send notification to Rhet + auto-reply to the person.
+    Requires SMTP_EMAIL + SMTP_PASSWORD env vars (Gmail App Password).
+    Silently skips if not configured — the phone number is still shown in the UI.
+    """
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_email    = os.environ.get('SMTP_EMAIL', '').strip()
+    smtp_password = os.environ.get('SMTP_PASSWORD', '').strip()
+    if not smtp_email or not smtp_password:
+        return
+
+    # Notify Rhet
+    notif = MIMEText(
+        f"Crisis contact request from: {to_email}\n\n"
+        f"Someone dealing with a serious situation needs API access for Victim Advocate.\n"
+        f"They should receive an auto-reply with your number, but follow up if you can."
+    )
+    notif['Subject'] = f"[Victim Advocate] Crisis contact needs API: {to_email}"
+    notif['From']    = smtp_email
+    notif['To']      = NOTIFY_EMAIL
+
+    # Auto-reply to user
+    reply = MIMEMultipart('alternative')
+    reply['Subject'] = "Victim Advocate — We received your message"
+    reply['From']    = smtp_email
+    reply['To']      = to_email
+    body = (
+        "We received your contact request.\n\n"
+        f"{FOUNDER_NAME}, {FOUNDER_TITLE}, will follow up with you.\n\n"
+        "In the meantime, you can reach him directly:\n"
+        f"{FOUNDER_PHONE} — call or text\n\n"
+        "Ask for an API key for Victim Advocate. He will add $10 to keep the conversation going.\n\n"
+        "What you are going through matters. You are not alone.\n\n"
+        "— Victim Advocate / AIIT-Threshold"
+    )
+    reply.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        server.login(smtp_email, smtp_password)
+        server.sendmail(smtp_email, NOTIFY_EMAIL, notif.as_string())
+        server.sendmail(smtp_email, to_email, reply.as_string())
+
+
+@app.route('/api/crisis-contact', methods=['POST'])
+def crisis_contact():
+    """
+    Called when someone in a serious crisis (rape, assault) hits the API wall.
+    Logs their email, fires notification + auto-reply (if SMTP configured),
+    and returns Rhet's phone number so they see it immediately.
+    """
+    data  = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip()
+    if not email or '@' not in email:
+        return jsonify({'error': 'Please enter a valid email address.'}), 400
+
+    # Log the contact
+    os.makedirs(os.path.dirname(CRISIS_CONTACT_PATH), exist_ok=True)
+    record = {
+        'timestamp': datetime.now().isoformat(),
+        'email': email,
+        'ip': request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+    }
+    with open(CRISIS_CONTACT_PATH, 'a') as f:
+        f.write(json.dumps(record) + '\n')
+
+    # Fire emails — never block on failure
+    try:
+        _send_crisis_emails(email)
+    except Exception:
+        pass
+
+    return jsonify({
+        'ok': True,
+        'phone': FOUNDER_PHONE,
+        'name':  FOUNDER_NAME,
+        'title': FOUNDER_TITLE,
+        'message': 'Call or text. Ask for an API key for Victim Advocate. He will add $10.'
+    })
+
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """
@@ -1356,12 +1447,24 @@ def chat():
     """
     # Accept key from request (user's own key) or fall back to server env key
     data_pre = request.get_json(silent=True) or {}
-    api_key = (data_pre.get('api_key') or os.environ.get('ANTHROPIC_API_KEY', '')).strip()
-    if not api_key:
-        return jsonify({'error': 'NO_KEY'}), 403
+    # crisis_cover=true means the frontend is asking us to use the server key on their behalf
+    crisis_cover = data_pre.get('crisis_cover', False)
+    if crisis_cover:
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    else:
+        api_key = (data_pre.get('api_key') or os.environ.get('ANTHROPIC_API_KEY', '')).strip()
 
     data = data_pre
     messages = data.get('messages', [])
+
+    if not api_key:
+        # Tell the frontend whether this is a crisis cover failure (show email form)
+        # vs. a normal no-key state (show key prompt)
+        in_crisis_pre = _is_crisis(messages)
+        return jsonify({
+            'error': 'NO_KEY',
+            'crisis': in_crisis_pre
+        }), 403
 
     # Rate limit by IP — NEVER limit crisis users
     ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
