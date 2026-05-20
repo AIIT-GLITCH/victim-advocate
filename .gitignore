@@ -1,7 +1,11 @@
 __pycache__/
 *.py[cod]
+.venv/
+logs/
 *.db
 *.sqlite
 .env
+data/reports.jsonl
+data/crisis_contacts.jsonl
 add_evidence*.py
 data/add_evidence*.py
