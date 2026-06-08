@@ -10,6 +10,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "va-dev")
 app.register_blueprint(pricing_bp)
 
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok", "app": "victim_advocate"}), 200
+
 def load_rights():
     rights = {}
     mods = {"FL":"rights_fl","GA":"rights_ga","IL":"rights_il",
